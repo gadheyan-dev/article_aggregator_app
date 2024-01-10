@@ -1,4 +1,5 @@
 import feedparser
+from datetime import datetime
 from newspaper import Article
 from newspaper import Config
 
@@ -27,10 +28,15 @@ class FeedParser():
             article.download()
             article.parse()
             # Extract information
-            authors = article.authors
-            publish_date = article.publish_date
+            title = entry.title
+            if 'author' in entry:  # Check if 'author' tag is present in the entry
+                authors = [{'name': entry.author, 'email': ""}]
+            else:
+                authors = []
+            publish_date = entry.published or article.publish_date
+            publish_date = datetime.strptime(publish_date, '%a, %d %b %Y %H:%M:%S %z')
             word_count = len(article.text.split())
-            read_time = word_count / 200  # Assuming an average reading speed of 200 words per minute
+            read_time = round(word_count / 200, 2)  # Assuming an average reading speed of 200 words per minute
             categories = entry.get('tags', [])
 
 
@@ -43,6 +49,7 @@ class FeedParser():
             # Store the information in a dictionary
             article_info = {
                 'url': article.url,
+                'title':title,
                 'authors': authors,
                 'publish_date': publish_date,
                 'word_count': word_count,

@@ -6,29 +6,7 @@ from rest_framework import status
 from crawler_app.service.crawler import Crawler
 from crawler_app.service.feed_parser import FeedParser
 from crawler_app.apis.articles.domain import DomainApi
-
-class ParseFeed(APIView):
-    def post(self, request):
-        feed_urls = request.data.get('urls', [])  # Get a list of URLs from the request data
-        feeds = []
-        
-        if not feed_urls:
-            return Response({'error': 'Please provide valid Feed URLs'}, status=400)
-        
-        try:
-            for feed_url in feed_urls:
-                feed_obj = FeedParser(feed_url)
-                feed_data = feed_obj.parse_feed()
-                feeds.append(feed_data)
-            return Response(feeds, status=200)
-        except Exception as e:
-            print("\n\n\n\nException is:")
-            import traceback
-            print(traceback.format_exc())
-            return Response({'error': 'An error occurred while parsing...'}, status=400)
-
-            
-            
+from crawler_app.apis.articles.article import ArticleApi
 
 
 class FindFeed(APIView):
@@ -41,15 +19,16 @@ class FindFeed(APIView):
         try:
             visited_and_unvisited_domains = DomainApi.fetch_crawled_domains(feed_urls)
             crawled_domains = self.crawl_domains(visited_and_unvisited_domains)
-            response = DomainApi.save_domains(crawled_domains)
-            articles = self.parse_feeds(feeds)
-            return Response(articles, status=400)
+            DomainApi.save_domains(crawled_domains)
+            DomainApi.save_outbound_domains(crawled_domains)
+            articles = self.parse_feeds(crawled_domains)
+            ArticleApi.save_articles(articles)
         except Exception as e:
             print("\n\n\n\nException is:")
             import traceback
             print(traceback.format_exc())
             return Response({'error': 'An error occured while crawling...'}, status=400)
-        return Response({'domains': crawled_domains}, status=status.HTTP_200_OK)
+        return Response({'domains': crawled_domains, 'articles': articles}, status=status.HTTP_200_OK)
 
 
     def crawl_domains(self, domains):
@@ -77,11 +56,16 @@ class FindFeed(APIView):
 
     def parse_feeds(self, feeds):
         articles = []
+        if not feeds:
+            # Raise Exception
+            return []
         try:
             for feed in feeds:
-                feed_obj = FeedParser(feed['url'])
-                feed_data = feed_obj.parse_feed()
-                articles.append(feed_data)
+                for feed_url in feed['feeds']:
+                    feed_obj = FeedParser(feed_url)
+                    feed_data = feed_obj.parse_feed()
+                    articles.append(feed_data)
+                
         except Exception as e:
             print("\n\n\n\nException is:")
             import traceback

@@ -5,8 +5,8 @@ from mongoengine.errors import ValidationError
 
     
 class Domain(mongoengine.Document):
-    
 
+    
     URL_MAX_LENGTH = 2000
     NON_CRAWLABLE_CHOICES = [
         ('SOCIAL_MEDIA', 'Social Media'),
@@ -18,6 +18,7 @@ class Domain(mongoengine.Document):
     url = mongoengine.fields.URLField(max_length=URL_MAX_LENGTH, unique=True)
     feeds = mongoengine.fields.ListField(mongoengine.fields.URLField(max_length=URL_MAX_LENGTH), required=False)
     outbound_domains = mongoengine.fields.ListField(mongoengine.fields.URLField(max_length=URL_MAX_LENGTH), required=False)
+    inbound_domains = mongoengine.fields.ListField(mongoengine.fields.URLField(max_length=URL_MAX_LENGTH), required=False)
     is_crawlable = mongoengine.fields.BooleanField(default=True)
     non_crawlable_reason = mongoengine.fields.StringField(
         max_length=50,
@@ -30,7 +31,7 @@ class Domain(mongoengine.Document):
     updated_at = mongoengine.fields.DateTimeField(default=datetime.datetime.utcnow)
 
 
-    readonly_fields = ['_id', 'created_at', 'updated_at'] 
+    readonly_fields = ['_id', 'created_at', 'updated_at']
 
 
     def clean(self):

@@ -31,8 +31,8 @@ def find_rss_feeds_from_url(data):
 
 
 @shared_task
-def parse_feeds(data):
-    crawler_url = settings.CRAWLER_URL + '/crawl/parse__and_save_feeds/'
+def save_feeds(data):
+    crawler_url = settings.CRAWLER_URL + '/crawl/save_articles/'
     feeds = data['feeds']
     if not feeds:
             return {'error': 'Please provide atleast 1 URL to crawl'}
