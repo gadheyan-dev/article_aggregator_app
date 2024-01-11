@@ -12,8 +12,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . /app/
 
 RUN python manage.py collectstatic --noinput
-RUN python -m spacy download en_core_web_lg
-RUN python -m spacy download en_core_web_sm
+# RUN python -m spacy download en_core_web_lg
+# RUN python -m spacy download en_core_web_sm
 
 EXPOSE 8000
 

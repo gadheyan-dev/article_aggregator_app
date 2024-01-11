@@ -24,18 +24,3 @@ class ArticleSummarizer():
         self.process()
         self.save_to_model()
         return self.article
-    
-    def summarize_text(self, text, k = 5):
-        nlp = spacy.load("en_core_web_lg")
-        doc = nlp(text)
-        # Extract the most important sentences.
-        sentence_scores = []
-        for sentence in doc.sents:
-            sentence_scores.append((sentence.text, sentence.similarity(doc)))
-        # Sort the sentences by their scores.
-        sentence_scores.sort(key=lambda x: x[1], reverse=True)
-        # Get the top k sentences.
-        sentences = [sentence[0] for sentence in sentence_scores[:k]]
-        # Combine the sentences to form a summary.
-        summary = " ".join(sentences)
-        return summary

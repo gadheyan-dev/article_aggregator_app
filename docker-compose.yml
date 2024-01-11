@@ -86,7 +86,7 @@ services:
 
   celery-worker:
     build: tasks_service/
-    command: sh -c "watchmedo auto-restart -d /app -p '*.py' -- celery -A tasks_service worker --loglevel=info"
+    command: python3 manage.py celery
     volumes:
       - ./tasks_service/:/app
     depends_on:
