@@ -11,11 +11,13 @@ def summarize_and_save(data):
     summarizer_url = summarizer_url + "summarize/"
 
     article_url = settings.ARTICLE_URL
-    article_url = summarizer_url + "articles/"
+    article_url = article_url + "articles/"
 
     try:
         response = requests.post(summarizer_url, data=data)
-        requests.post(article_url, data=response.json)
+        respone_from_article = requests.post(article_url, data=response.json())
+        print("\n\n\n\n\nResponse Ar:\n")
+        # print(response.content)
     except requests.exceptions.RequestException as e:
         # Log error
         print("error: ", e)
