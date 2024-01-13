@@ -1,16 +1,17 @@
 from feedsearch_crawler import search
+import tldextract
 
 
-class Util:
+class FeedUtil:
     url = ""
     feeds = []
     def __init__(self, url):
         self.url = url
-        load_feeds()
+        self.__load_feeds()
 
-    def load_feeds():
+    def __load_feeds(self):
         self.feeds = search(self.url)
-
+        
     def feed_exists(self):
         True if self.feeds else False
     
@@ -18,3 +19,9 @@ class Util:
         return self.feeds
 
 
+class URLUtil:
+    url = ""
+
+    def get_clean_ur(url):
+        clean_url = ""
+        return clean_url

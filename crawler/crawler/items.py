@@ -6,7 +6,8 @@
 import scrapy
 
 
-class CrawlerItem(scrapy.Item):
+class FeedItem(scrapy.Item):
     # define the fields for your item here like:
     # name = scrapy.Field()
-    pass
+    feed_urls = []
+    external_websites = []
