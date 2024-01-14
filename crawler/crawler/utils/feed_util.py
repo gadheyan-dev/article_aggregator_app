@@ -18,10 +18,3 @@ class FeedUtil:
     def feeds(self):
         return self.feeds
 
-
-class URLUtil:
-    url = ""
-
-    def get_clean_ur(url):
-        clean_url = ""
-        return clean_url
