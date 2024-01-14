@@ -1,2 +1,72 @@
-.env/
+# Ignore virtual environment files
+venv/
+*.pyc
+__pycache__
+
+# Ignore database files
+db.sqlite3
+
+# Ignore media and static files (if using Django's built-in file handling)
+media/
+staticfiles/
+
+# Ignore environment and secret keys files
+.env
+*.env
+
+# Ignore logs and generated files
+logs/
+*.log
+
+# Ignore local development settings
+local_settings.py
+
+# Ignore IDE and editor-specific files
 .vscode/
+*.idea/
+*.vscode/
+*.pyc
+
+# Ignore Mac-specific files
+.DS_Store
+
+# Ignore Python bytecode
+__pycache__/
+
+# Ignore test database
+test_db.sqlite3
+
+# Ignore any generated HTML, CSS, and JavaScript files
+*.html
+*.css
+*.js
+
+# Ignore local development files
+*.local
+
+# Ignore node_modules
+node_modules/
+
+# Ignore any other generated files or directories
+__init__.py
+__pycache__
+*.db
+*.bak
+*.swp
+*.swo
+*.swn
+
+# Ignore backup files
+*.bak
+*.backup
+*.swp
+*.swo
+*.swn
+
+# Ignore pipenv environment
+Pipfile
+Pipfile.lock
+
+# Ignore poetry environment
+pyproject.toml
+poetry.lock
