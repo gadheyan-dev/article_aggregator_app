@@ -7,7 +7,5 @@ import scrapy
 
 
 class FeedItem(scrapy.Item):
-    # define the fields for your item here like:
-    # name = scrapy.Field()
-    feed_urls = []
-    external_websites = []
+    url = scrapy.Field()
+
