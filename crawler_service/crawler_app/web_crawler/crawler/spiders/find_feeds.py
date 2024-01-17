@@ -2,10 +2,10 @@ import scrapy
 from scrapy.spiders import Spider
 from scrapy.linkextractors import LinkExtractor
 
-from crawler.items import FeedItem
-from crawler.utils.url_util import URLUtil
+from crawler_app.web_crawler.crawler.items import FeedItem
+from crawler_app.web_crawler.crawler.utils.url_util import URLUtil
 
-class FeedURLSpider(Spider):
+class FindFeedsSpider(Spider):
    
     name = 'feeds'
     custom_settings = {
@@ -14,8 +14,10 @@ class FeedURLSpider(Spider):
     start_url = ""
 
     def __init__(self, *args, **kwargs):
-        super(FeedURLSpider, self).__init__(*args, **kwargs)
+        super(FindFeedsSpider, self).__init__(*args, **kwargs)
         self.start_url = kwargs.get('start_url', 'https://tastecooking.com')
+        print("\n\n\n\n\n Start URL:")
+        print(self.start_url)
         self.domains_allowed = [self.get_domain(self.start_url)]
         self.feed_links = []
 
