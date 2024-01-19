@@ -42,11 +42,11 @@ services:
     ports:
       - "8004:8004"
     image: crawler_service_image
+    volumes:
+      - ./crawler_service/:/app 
     environment:
       - DJANGO_SETTINGS_MODULE=crawler_service.settings
       - DJANGO_DEBUG=True
-    volumes:
-      - ./crawler_service/:/app 
     networks:
       - rss_app_network
 
