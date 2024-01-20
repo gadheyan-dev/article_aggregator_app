@@ -1,6 +1,7 @@
 from django.urls import path
-from . import views
+from .views import article, domain
 
 urlpatterns = [
-    path("", views.ArticleList.as_view())
+    path("articles/", article.ArticleAPI.as_view()),
+    path("domains/", domain.DomainAPI.as_view())
 ]

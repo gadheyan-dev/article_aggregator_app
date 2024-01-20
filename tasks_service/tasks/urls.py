@@ -3,5 +3,5 @@ from . import views
 
 urlpatterns = [
     path("summarize/", views.SummarizeTaskList.as_view()),
-    # path("crawl/", views.CrawlTaskList.as_view())
+    path("crawl/", views.CrawlTaskList.as_view())
 ]

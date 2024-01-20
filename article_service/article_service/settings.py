@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'djongo',
     'rest_framework',
     'articles'
 ]
@@ -77,12 +78,17 @@ WSGI_APPLICATION = 'article_service.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'HOST': os.environ.get('POSTGRES_HOST', 'localhost'),
-        'PORT': os.environ.get('POSTGRES_PORT', '5432'),
-        'NAME': os.environ.get('POSTGRES_DB', 'articles_db'),
-        'USER': os.environ.get('POSTGRES_USER', 'articles_user'),
-        'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'articles_password'),
+        'ENGINE': 'djongo',
+        'NAME': os.environ.get('MONGO_INITDB_DATABASE', 'articles_db'),
+        'ENFORCE_SCHEMA': False,
+        'CLIENT': {
+            'host': 'mongodb://article_user:article_password@article_db:27017/'
+            # 'HOST': os.environ.get('MONGO_INITDB_ROOT_USERNAME', 'localhost'),
+            # 'PORT': os.environ.get('POSTGRES_PORT', '5432'),
+            # 'USER': os.environ.get('POSTGRES_USER', 'articles_user'),
+            # 'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'articles_password'),
+        }
+
     }
 }
 

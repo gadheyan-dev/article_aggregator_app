@@ -130,3 +130,4 @@ CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
 
 SUMMARIZER_URL = "http://summarizer-service-container:8000/"
 ARTICLE_URL = "http://article-service-container:8002/"
+CRAWLER_URL = "http://crawler-service-container:8004"

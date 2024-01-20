@@ -1,7 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from tasks.tasks import summarize_and_save
+from tasks.tasks import summarize_and_save, find_rss_feeds_from_url
 
 class SummarizeTaskList(APIView):
     
@@ -11,11 +11,11 @@ class SummarizeTaskList(APIView):
         return Response({'task_id': result.id})
     
 
-# class CrawlTaskList(APIView):
+class CrawlTaskList(APIView):
     
-#     def post(self, request, format=None):
-#         result = find_rss_feeds_from_url.delay(request.data)
-#         return Response({'task_id': result.id})
+    def post(self, request, format=None):
+        result = find_rss_feeds_from_url.delay(request.data)
+        return Response({'task_id': result.id})
             
 
 
