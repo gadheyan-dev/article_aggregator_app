@@ -1,28 +1,34 @@
 from django.shortcuts import render
 
 
-from ..models.aritcle import Article
+from articles.models.article import Article
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from ..serializers import ArticleSerializer
+from articles.serializers.article import ArticleSerializer
 from articles.utils import parse_json
 
 
 class ArticleAPI(APIView):
-    
+    def __get_object(self, url):
+        try:
+            return Article.objects.get(url=url)
+        except Article.DoesNotExist:
+            return Article(url=url)
+
     def post(self, request):
-        # serializer = ArticleSerializer(data=request.data)
-        
-        # if serializer.is_valid():
-        #     serializer.save()
-        #     return Response(serializer.data, status=status.HTTP_201_CREATED)
-        # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        article = Article(
-            title = request.data['title']
-        )
-        article.save()
-        return Response(request.data, status=status.HTTP_201_CREATED)
+        url = self.request.data.get('url')
+        instance = Article.objects.filter(url=url).first()
+
+        if instance:
+            serializer = ArticleSerializer(instance, data=request.data)
+        else:
+            serializer = ArticleSerializer(data=request.data)
+
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
         

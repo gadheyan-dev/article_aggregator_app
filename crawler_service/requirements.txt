@@ -1,7 +1,6 @@
 Django==4.1.0
-psycopg2-binary==2.9
 djangorestframework==3.14.0
 gunicorn==21.2.0
 newspaper3k==0.2.8
-Scrapy==2.11.0
 feedparser==6.0.10
+debugpy==1.5.1

@@ -1,4 +1,6 @@
 import feedparser
+from newspaper import Article
+from newspaper import Config
 
 class FeedParser():
     def __init__(self, feed_url) -> None:
@@ -7,35 +9,49 @@ class FeedParser():
 
     def parse_feed(self):
         # Parse the feed from the provided URL
-        feed = feedparser.parse(url)
+        feed = feedparser.parse(self.feed_url)
+        config = Config()
+        config.language = 'en'
 
         entries = []
 
+        # TODO: Delete this code
+        count = -1
         # Iterate through each entry in the feed
         for entry in feed.entries:
+            count += 1
+            if count > 5:
+                break
             # Extract information from each entry
-            title = entry.title
-            url = entry.link
-            authors = [author.name for author in entry.authors] if 'authors' in entry else []
-            summary = entry.summary if 'summary' in entry else ''
-            publish_date = entry.published_parsed if 'published_parsed' in entry else None
-            word_count = len(entry.summary.split()) if 'summary' in entry else 0
-            read_time = int(word_count / 200) + 1  # Assuming an average reading speed of 200 words per minute
+            article = Article(entry['link'], config=config)
+            article.download()
+            article.parse()
+            # Extract information
+            authors = article.authors
+            publish_date = article.publish_date
+            word_count = len(article.text.split())
+            read_time = word_count / 200  # Assuming an average reading speed of 200 words per minute
             categories = entry.get('tags', [])
 
-            # Create a dictionary with the extracted information
-            entry_info = {
-                'title': title,
-                'url': url,
+
+            # Extract the top image
+            top_image = article.top_image
+
+            # Save the main content as a summary (teaser)
+            summary = article.meta_description
+
+            # Store the information in a dictionary
+            article_info = {
+                'url': article.url,
                 'authors': authors,
-                'summary_of_article': summary,
                 'publish_date': publish_date,
                 'word_count': word_count,
                 'read_time': read_time,
-                'categories': categories
+                'categories': categories,
+                'top_image': top_image,
+                'summary': summary
             }
 
-            # Append the dictionary to the list of entries
-            entries.append(entry_info)
+            entries.append(article_info)
 
         return entries

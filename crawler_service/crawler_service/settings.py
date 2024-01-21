@@ -125,3 +125,9 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+SUMMARIZER_URL = "http://summarizer-service-container:8000/"
+ARTICLE_URL = "http://article-service-container:8002/"
+TASK_URL = "http://task-service-container:8010/"
+

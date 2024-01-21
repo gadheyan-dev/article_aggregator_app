@@ -41,6 +41,7 @@ services:
     container_name: crawler-service-container
     ports:
       - "8004:8004"
+      - "3001:3001"
     image: crawler_service_image
     volumes:
       - ./crawler_service/:/app 
@@ -50,32 +51,6 @@ services:
     networks:
       - rss_app_network
 
-  # article_db:
-  #   container_name: article-db-container
-  #   image: postgres
-  #   restart: always
-  #   environment:
-  #     POSTGRES_USER: article_user
-  #     POSTGRES_PASSWORD: article_password
-  #     POSTGRES_DB: article_db
-  #   ports:
-  #     - "5432:5432"
-  #   volumes:
-  #     - article_pg_data:/var/lib/postgresql/data
-  #   networks:
-  #     - rss_app_network
-
-  # pgadmin:
-  #   container_name: pgadmin4_container
-  #   image: dpage/pgadmin4
-  #   restart: always
-  #   environment:
-  #     PGADMIN_DEFAULT_EMAIL: admin@admin.com
-  #     PGADMIN_DEFAULT_PASSWORD: root
-  #   ports:
-  #     - "5060:80"
-  #   networks:
-  #     - rss_app_network
 
   article_db:
     container_name: article-db-container
@@ -86,7 +61,7 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: article_password
       MONGO_INITDB_DATABASE: article_db
     volumes:
-      - article_mongo_data:/var/lib/mongodb
+      - article_mongo_data:/data/db
     networks:
       - rss_app_network
 

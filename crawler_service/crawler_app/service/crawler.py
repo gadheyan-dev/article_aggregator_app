@@ -2,7 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import tldextract
 from urllib.parse import urljoin
-from crawler_service.crawler_app.service.utils.robot_parser_util import CrawlerRobotParserUtil
+from crawler_app.service.utils.robot_parser_util import CrawlerRobotParserUtil
 
 class WebsiteNotReachableException(Exception):
     pass
@@ -10,7 +10,7 @@ class WebsiteNotReachableException(Exception):
 
 class Crawler:
     
-    FEED_PATHS = ['/rss', '/feed']
+    FEED_PATHS = ['/rss', '/feed', 'xml/rss/all.xml', '/feed/rss']
 
     def __init__(self, url):
         self.url = url
@@ -21,7 +21,7 @@ class Crawler:
     
     def crawl(self):
         print("Started Crawling...\n")
-        print("Checking if crawling allowed...\n")
+        print("Checking if crawling allowed for url:%s...\n" %(self.url))
         crlr_checker = CrawlerRobotParserUtil(self.url)
         if not crlr_checker.crawl_allowed:
             print("Crawling not allowed in this url... exiting...\n")
