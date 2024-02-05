@@ -2,9 +2,6 @@ from bson import json_util
 import tldextract
 import json
 
-def parse_json(data):
-    return json.loads(json_util.dumps(data))
-
 """
 Extracts the domain from a given URL.
 Args:
@@ -12,7 +9,18 @@ Args:
 Returns:
     str: The extracted domain.
 """
-def get_domain_from_url(url):
-    tld = tldextract.extract(url)
-    domain = f"{tld.domain}.{tld.suffix}"
-    return domain
+def convert_urls_to_domain(urls, many=True):
+    domains = []
+    if not many:
+        urls = [urls]
+    for url in urls:
+        tld = tldextract.extract(url)
+        scheme = "https"
+        if not tld.subdomain:
+            tld.subdomain = "www"
+        domains.append(f"{scheme}://{tld.subdomain}.{tld.domain}.{tld.suffix}")
+
+    if not many:
+       domains = domains[0]
+
+    return domains

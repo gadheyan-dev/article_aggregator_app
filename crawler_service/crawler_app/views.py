@@ -29,40 +29,42 @@ class ParseFeed(APIView):
 
 class FindFeed(APIView):
     def post(self, request):
-        feed_urls = request.data.get('urls')
+        feed_urls = request.data
         feeds = None
-        external_domains = None
+        outbound_domains = None
         if not feed_urls:
             return Response({'error': 'Please provide atleast 1 URL to crawl'}, status=400)
         try:
-            feeds, external_domains = self.__get_feeds_and_domains(feed_urls)
-            domains_to_crawl = DomainUtil.get_domain_to_crawl(external_domains)
-            print(feeds)
-            print(domains_to_crawl)
-            # DomainUtil.add_to_tasks(domains_to_crawl)
+            domains_to_crawl = DomainUtil.validate_domains(feed_urls)
+            feeds, outbound_domains = self.__get_feeds_and_domains(feed_urls)
+            DomainUtil.save_domains(feeds)
+            # DomainUtil.crawl_domains(domains_to_crawl)
+            # DomainUtil.parse_feeds(feeds)
         except Exception as e:
             print("\n\n\n\nException is:")
             import traceback
             print(traceback.format_exc())
             return Response({'error': 'An error occured while crawling...'}, status=400)
-        return Response({'message': 'Crawling started'})
+        return Response({'feeds': feeds, "outbound_domains":outbound_domains}, status=status.HTTP_200_OK)
 
 
     def __get_feeds_and_domains(self, feed_urls):
-        feeds = set()
-        external_domains = set()
+        feeds = {}
+        outbound_domains = set()
         for url in feed_urls:
             try:
                 crawler = Crawler(url)
                 crawler.crawl()
-                feeds.union(crawler.get_feeds())
-                external_domains.union(crawler.get_external_domains())
+                feeds[url] = {'feeds': crawler.get_feeds(), 'outbound_domains': crawler.get_outbound_domains(), 'crawlable':True}
+                outbound_domains = outbound_domains.union(crawler.get_outbound_domains())
             except Exception as e:
-                print("URL Is:" + url)
-                print("\n\n\n\nException is:")
-                import traceback
-                print(traceback.format_exc())
+                feeds[url] = {'feeds':[],
+                              'crawlable':False}
+                # print("URL Is:" + url)
+                # print("\n\n\n\nException is:")
+                # import traceback
+                # print(traceback.format_exc())
         
-        return feeds, external_domains
+        return feeds, outbound_domains
     
     

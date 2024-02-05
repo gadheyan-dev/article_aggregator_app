@@ -1,18 +1,20 @@
-from djongo import models
-# import uuid
+import mongoengine
+import datetime
 
 
-class Article(models.Model):
-    _id = models.ObjectIdField()
-    title = models.CharField(max_length=512, null=False)
-    url = models.URLField(max_length=2000, null=False)
-    top_image = models.URLField(max_length=2000, null=True)
-    description = models.TextField(null=True)
-    authors = models.JSONField() 
-    summary = models.TextField(null=True)
-    publish_date = models.DateField(null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
-    objects = models.DjongoManager()
+class Author(mongoengine.EmbeddedDocument):
+    name = mongoengine.fields.StringField(max_length=512, required=True)
+    email = mongoengine.fields.EmailField(required=False)
+
+class Article(mongoengine.Document):
+    _id = mongoengine.fields.ObjectIdField()
+    title = mongoengine.fields.StringField(max_length=512, required=True)
+    url = mongoengine.fields.URLField(max_length=2000, unique=True, required=True)
+    top_image = mongoengine.fields.URLField(max_length=2000, required=False)
+    authors = mongoengine.fields.ListField(mongoengine.fields.EmbeddedDocumentField(Author), required = False) 
+    summary = mongoengine.fields.StringField(required=False)
+    publish_date = mongoengine.fields.DateTimeField(required=False)
+    created_at = mongoengine.fields.DateTimeField(default=datetime.datetime.utcnow)
+    updated_at = mongoengine.fields.DateTimeField(default=datetime.datetime.utcnow)
 

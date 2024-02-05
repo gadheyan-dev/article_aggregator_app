@@ -15,7 +15,7 @@ class Crawler:
     def __init__(self, url):
         self.url = url
         self.rss_links = set()
-        self.external_domains = set()
+        self.outbound_domains = set()
         self.domain = tldextract.extract(url).domain
 
     
@@ -23,7 +23,7 @@ class Crawler:
         print("Started Crawling...\n")
         print("Checking if crawling allowed for url:%s...\n" %(self.url))
         crlr_checker = CrawlerRobotParserUtil(self.url)
-        if not crlr_checker.crawl_allowed:
+        if not crlr_checker.crawl_allowed():
             print("Crawling not allowed in this url... exiting...\n")
             return None
 
@@ -37,7 +37,7 @@ class Crawler:
 
         self.__get_common_feeds()
         self.__get_all_rss_feeds()
-        self.__get_external_domains()
+        self.__get_outbound_domains()
         print("Ended Crawling")
 
 
@@ -60,16 +60,18 @@ class Crawler:
                 self.rss_links.add(urljoin(self.url, link_tag.get('href')))
 
 
-    def __get_external_domains(self):
+    def __get_outbound_domains(self):
         # links = [a.get('href') for a in self.soup.find_all('a', href=True)]
         for a in self.soup.find_all('a', href=True):
             link_tld = tldextract.extract(a.get('href'))
+            if not(link_tld.domain and link_tld.suffix):
+                continue
             if link_tld.domain != self.domain:
-                self.external_domains.add(link_tld.domain + '.' + link_tld.suffix)
-
+                link_tld.subdomain = link_tld.subdomain or 'www'
+                self.outbound_domains.add('https://' + link_tld.subdomain + '.' + link_tld.domain + '.' + link_tld.suffix)
 
     def get_feeds(self):
         return self.rss_links
     
-    def get_external_domains(self):
-        return self.external_domains
+    def get_outbound_domains(self):
+        return self.outbound_domains

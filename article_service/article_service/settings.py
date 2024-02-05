@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import os
+import mongoengine
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -37,8 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'djongo',
     'rest_framework',
+    'rest_framework_mongoengine',
     'articles'
 ]
 
@@ -78,19 +79,38 @@ WSGI_APPLICATION = 'article_service.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'djongo',
-        'NAME': os.environ.get('MONGO_INITDB_DATABASE', 'articles_db'),
-        'ENFORCE_SCHEMA': False,
-        'CLIENT': {
-            'host': 'mongodb://article_user:article_password@article_db:27017/'
-            # 'HOST': os.environ.get('MONGO_INITDB_ROOT_USERNAME', 'localhost'),
-            # 'PORT': os.environ.get('POSTGRES_PORT', '5432'),
-            # 'USER': os.environ.get('POSTGRES_USER', 'articles_user'),
-            # 'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'articles_password'),
-        }
+        # 'ENGINE': 'djongo',
+        # 'NAME': os.environ.get('MONGO_INITDB_DATABASE', 'articles_db'),
+        # 'ENFORCE_SCHEMA': False,
+        # 'CLIENT': {
+        #     'host': 'mongodb://article_user:article_password@article_db:27017/'
+        #     # 'HOST': os.environ.get('MONGO_INITDB_ROOT_USERNAME', 'localhost'),
+        #     # 'PORT': os.environ.get('POSTGRES_PORT', '5432'),
+        #     # 'USER': os.environ.get('POSTGRES_USER', 'articles_user'),
+        #     # 'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'articles_password'),
+        # }
 
     }
 }
+
+MONGO_DATABASES = {
+    'default': {
+        'NAME': 'article_db',
+        'HOST': 'article_db',
+        'PORT': 27017,
+        'USERNAME': 'article_user',
+        'PASSWORD': 'article_password',
+        'ALIAS': 'default',
+    },
+}
+mongoengine.connect(
+    db=MONGO_DATABASES['default']['NAME'],
+    host=MONGO_DATABASES['default']['HOST'],
+    port=MONGO_DATABASES['default']['PORT'],
+    username=MONGO_DATABASES['default']['USERNAME'],
+    password=MONGO_DATABASES['default']['PASSWORD'],
+    alias=MONGO_DATABASES['default']['ALIAS']
+)
 
 
 # Password validation

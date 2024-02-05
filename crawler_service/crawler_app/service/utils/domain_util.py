@@ -4,7 +4,7 @@ from django.conf import settings
 class DomainUtil:
 
     @staticmethod
-    def get_domain_to_crawl(domains):
+    def validate_domains(domains):
         article_url = settings.ARTICLE_URL + 'domains/check_crawled'
         domains = list(domains)
         data = {"urls" : domains}
@@ -17,8 +17,29 @@ class DomainUtil:
         return visited_domains
     
     @staticmethod
-    def add_to_tasks(self, domains):
+    def crawl_domains(domains):
+        if not domains:
+            return
         taks_url = settings.TASK_URL + 'tasks/crawl/'
         data = {"urls" : domains}
+        response = requests.post(taks_url, json=data)
+        return response.json()
+    
+    @staticmethod
+    def parse_feeds(feeds):
+        if not feeds:
+            return
+        taks_url = settings.TASK_URL + 'tasks/parse_feeds/'
+        data = {"feeds" : feeds}
+        response = requests.post(taks_url, json=data)
+        return response.json()
+
+        
+    @staticmethod
+    def save_domains(feeds):
+        if not feeds:
+            return
+        taks_url = settings.TASK_URL + 'tasks/parse_feeds/'
+        data = {"feeds" : feeds}
         response = requests.post(taks_url, json=data)
         return response.json()

@@ -1,8 +1,8 @@
-from rest_framework import serializers
+from rest_framework_mongoengine import serializers
 from articles.models.article import Article
 
         
-class ArticleSerializer(serializers.ModelSerializer):
+class ArticleSerializer(serializers.DocumentSerializer):
     
     class Meta:
         model = Article

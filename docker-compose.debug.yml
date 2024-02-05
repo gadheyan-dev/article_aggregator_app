@@ -1,0 +1,120 @@
+version: '3'
+
+services:
+  article_service:
+    build: article_service/
+    container_name: article-service-container
+    command: ["sh", "-c", "pip install debugpy -t /tmp && python /tmp/debugpy --wait-for-client --listen 0.0.0.0:5679 manage.py runserver 0.0.0.0:8002 --nothreading --noreload"]
+    ports:
+      - "8002:8002"
+      - "5679:5679"
+    image: article_service_image
+    environment:
+      - DJANGO_SETTINGS_MODULE=article_service.settings
+      - DJANGO_DEBUG=True
+      - POSTGRES_HOST=article_db
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=article_db
+      - POSTGRES_USER=article_user
+      - POSTGRES_PASSWORD=article_password
+    volumes:
+      - ./article_service/:/app 
+    depends_on:
+      - article_db
+    networks:
+      - rss_app_network
+
+  summarizer_service:
+    build: summarizer_service/
+    container_name: summarizer-service-container
+    ports:
+      - "8000:8000"
+    image: summarizer_service_image
+    volumes:
+      - ./summarizer_service/:/app 
+    environment:
+      - DJANGO_SETTINGS_MODULE=summarizer_service.settings
+      - DJANGO_DEBUG=True
+    networks:
+      - rss_app_network
+
+  crawler_service:
+    build: crawler_service/
+    container_name: crawler-service-container
+    command: ["sh", "-c", "pip install debugpy -t /tmp && python /tmp/debugpy --wait-for-client --listen 0.0.0.0:5678 manage.py runserver 0.0.0.0:8004 --nothreading --noreload"]
+    ports:
+      - "8004:8004"
+      - "5678:5678"
+    image: crawler_service_image
+    volumes:
+      - ./crawler_service/:/app 
+    environment:
+      - DJANGO_SETTINGS_MODULE=crawler_service.settings
+      - DJANGO_DEBUG=True
+    networks:
+      - rss_app_network
+
+
+  article_db:
+    container_name: article-db-container
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: article_user
+      MONGO_INITDB_ROOT_PASSWORD: article_password
+      MONGO_INITDB_DATABASE: article_db
+    volumes:
+      - article_mongo_data:/data/db
+    networks:
+      - rss_app_network
+
+  mongo-express:
+    image: mongo-express
+    restart: always
+    ports:
+      - 8101:8081
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: article_user
+      ME_CONFIG_MONGODB_ADMINPASSWORD: article_password
+      ME_CONFIG_MONGODB_URL: mongodb://article_user:article_password@article_db:27017/
+    networks:
+      - rss_app_network
+
+  tasks_service:
+    build: tasks_service/
+    container_name: tasks-service-container
+    ports:
+      - "8010:8010"
+    image: tasks_service_image
+    volumes:
+      - ./tasks_service/:/app 
+    environment:
+      - DJANGO_SETTINGS_MODULE=tasks_service.settings
+      - DJANGO_DEBUG=True
+    networks:
+      - rss_app_network
+
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    networks:
+      - rss_app_network
+
+  celery-worker:
+    build: tasks_service/
+    command: python3 manage.py celery
+    volumes:
+      - ./tasks_service/:/app
+    depends_on:
+      - redis
+    networks:
+      - rss_app_network
+
+volumes:
+  article_mongo_data:
+    driver: local
+
+networks:
+  rss_app_network:
+    driver: bridge

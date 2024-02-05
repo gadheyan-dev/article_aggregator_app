@@ -35,3 +35,17 @@ def find_rss_feeds_from_url(data):
     except requests.exceptions.RequestException as e:
         # Log error
         print("error: ", e)
+
+
+@shared_task
+def parse_feeds(data):
+    crawler_url = settings.CRAWLER_URL + '/crawl/parse_feeds/'
+    feeds = data['feeds']
+    if not feeds:
+            return {'error': 'Please provide atleast 1 URL to crawl'}
+    try:
+        response = requests.post(crawler_url, json=data)
+        # TODO: LOG Response
+    except requests.exceptions.RequestException as e:
+        # Log error
+        print("error: ", e)
