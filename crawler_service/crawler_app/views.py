@@ -4,8 +4,8 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from crawler_app.service.crawler import Crawler
-from crawler_app.service.feed_parser.feed_parser import FeedParser
-from crawler_app.service.utils.domain_util import DomainUtil
+from crawler_service.crawler_app.service.feed_parser import FeedParser
+from crawler_service.crawler_app.apis.articles.domain import DomainApi
 
 class ParseFeed(APIView):
     def post(self, request):
@@ -35,11 +35,11 @@ class FindFeed(APIView):
         if not feed_urls:
             return Response({'error': 'Please provide atleast 1 URL to crawl'}, status=400)
         try:
-            domains_to_crawl = DomainUtil.validate_domains(feed_urls)
-            feeds, outbound_domains = self.__get_feeds_and_domains(feed_urls)
-            DomainUtil.save_domains(feeds)
-            # DomainUtil.crawl_domains(domains_to_crawl)
-            # DomainUtil.parse_feeds(feeds)
+            visited_and_unvisited_domains = DomainApi.fetch_crawled_domains(feed_urls)
+            crawled_domains = self.crawl_domains(visited_and_unvisited_domains)
+            DomainApi.save_domains(crawled_domains)
+            # DomainApi.crawl_domains(visited_and_unvisited_domains)
+            # DomainApi.parse_feeds(feeds)
         except Exception as e:
             print("\n\n\n\nException is:")
             import traceback
@@ -48,10 +48,10 @@ class FindFeed(APIView):
         return Response({'feeds': feeds, "outbound_domains":outbound_domains}, status=status.HTTP_200_OK)
 
 
-    def __get_feeds_and_domains(self, feed_urls):
+    def crawl_domains(self, domains):
         feeds = {}
         outbound_domains = set()
-        for url in feed_urls:
+        for url in domains:
             try:
                 crawler = Crawler(url)
                 crawler.crawl()
@@ -65,6 +65,6 @@ class FindFeed(APIView):
                 # import traceback
                 # print(traceback.format_exc())
         
-        return feeds, outbound_domains
+        return feeds
     
     

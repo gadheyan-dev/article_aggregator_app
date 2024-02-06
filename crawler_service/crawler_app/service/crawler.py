@@ -2,7 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import tldextract
 from urllib.parse import urljoin
-from crawler_app.service.utils.robot_parser_util import CrawlerRobotParserUtil
+from crawler_app.utils.robot_parser_util import CrawlerRobotParserUtil
 
 class WebsiteNotReachableException(Exception):
     pass

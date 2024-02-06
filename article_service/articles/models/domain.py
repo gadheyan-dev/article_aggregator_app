@@ -6,6 +6,7 @@ from mongoengine.errors import ValidationError
     
 class Domain(mongoengine.Document):
     
+
     URL_MAX_LENGTH = 2000
     NON_CRAWLABLE_CHOICES = [
         ('SOCIAL_MEDIA', 'Social Media'),
@@ -24,6 +25,10 @@ class Domain(mongoengine.Document):
     crawl_delay_in_minutes = mongoengine.fields.IntField(default=1440)
     created_at = mongoengine.fields.DateTimeField(default=datetime.datetime.utcnow)
     updated_at = mongoengine.fields.DateTimeField(default=datetime.datetime.utcnow)
+
+
+    readonly_fields = ['_id', 'created_at', 'updated_at'] 
+
 
     def clean(self):
         if not self.is_crawlable and not self.non_crawlable_reason:
