@@ -6,20 +6,8 @@ class DomainApi:
     
     @staticmethod
     def fetch_crawled_domains(domains):
-        """
-        Segregates a list of domains into visited and unvisited domains.
-        
-        Given a list of domains, this method sends a request to a designated ARTICLE_URL
-        to check which domains have been crawled.
-        
-        Args:
-        - domains (list): A list of dictionaries representing domains to be checked.
-        
-        Returns:
-        - crawled_domains (list): List of crawled domains along with their crawlable and visited status.
-        """
         article_url = settings.ARTICLE_URL + 'domains/check_crawled'
-        data = {"urls" : domains}
+        data = domains
         response = requests.post(article_url, json=data)
         crawled_domains = response.json()
         return crawled_domains
@@ -29,7 +17,7 @@ class DomainApi:
         if not domains:
             return
         taks_url = settings.TASK_URL + 'tasks/crawl/'
-        data = {"urls" : domains}
+        data = domains
         response = requests.post(taks_url, json=data)
         return response.json()
     
@@ -42,20 +30,20 @@ class DomainApi:
         response = requests.post(taks_url, json=data)
         return response.json()
 
-        
     @staticmethod
     def save_domains(domains):
         if not domains:
-            return
-        to_update = []
-        to_create = []
-        for domain in domains:
-            if domain['visited']:
-                to_create.append(domain)
-                continue
-            to_update.append(domain)
-            
-        article_url = settings.ARTICLE_URL + 'domains/check_crawled'
-        data = {"urls" : domains}
-        # response = requests.post(taks_url, json=data)
-        # return response.json()
+            return None
+        
+        to_update = [domain for domain in domains if domain['visited']]
+        to_create = [domain for domain in domains if not domain['visited']]
+
+        url = settings.ARTICLE_URL + 'domains/'
+        response_create = None
+        response_update = None
+        if to_create:
+            response_create = requests.post(url, json=to_create)
+        if to_update:
+            response_update = requests.put(url, json=to_update)
+        
+        return response_create, response_update

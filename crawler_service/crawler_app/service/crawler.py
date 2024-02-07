@@ -71,7 +71,7 @@ class Crawler:
                 self.outbound_domains.add('https://' + link_tld.subdomain + '.' + link_tld.domain + '.' + link_tld.suffix)
 
     def get_feeds(self):
-        return self.rss_links
+        return list(self.rss_links)
     
     def get_outbound_domains(self):
-        return self.outbound_domains
+        return list(self.outbound_domains)

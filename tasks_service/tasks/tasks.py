@@ -7,18 +7,11 @@ from celery import shared_task
 
 
 @shared_task
-def summarize_and_save(data):
-    summarizer_url = settings.SUMMARIZER_URL
-    summarizer_url = summarizer_url + "summarize/"
-
+def save_articles(data):
     article_url = settings.ARTICLE_URL
     article_url = article_url + "articles/"
-
-
     try:
-        response = requests.post(summarizer_url, json=data)
-        summary = response.json()
-        respone_from_article = requests.post(article_url, json=summary)
+        requests.post(article_url, json=data)
     except requests.exceptions.RequestException as e:
         # Log error
         print("error: ", e)

@@ -2,11 +2,10 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from datetime import datetime
-from pymongo import UpdateOne
 
 from articles.utils.common_utils import convert_urls_to_domain, split_into_visited_and_unvisited
 from articles.models.domain import Domain
-from articles.serializers.domain import DomainSerializer, CrawledDomainSerializer
+from articles.serializers.domain import DomainSerializer, DomainUpdateSerialier, CrawledDomainSerializer
 
 class DomainsAPI(APIView):
     
@@ -20,38 +19,36 @@ class DomainsAPI(APIView):
 
 
     def put(self, request):
-        domains_data = request.data
-        # serializer = DomainSerializer(data=domains_data, partial=True, many=True)
+        serializer = DomainUpdateSerialier(data=request.data, many=True, partial=True)
+        current_time = datetime.utcnow()
         
-        # if serializer.is_valid():
-        domain_list = []
-        for domain_data in domains_data:
-            url =  convert_urls_to_domain(domain_data['url'], many=False)
-            domain_list.append(url)
-        for domain_data in domains_data:
-            # url =  convert_urls_to_domain(domain_data['urls'], many=False)
-            domain_instance = Domain.objects.filter(url=domain_data['url']).first()
-            update_dict = {}
-            if domain_instance:
-                for key, value in domain_data.items():
-                    update_dict[key] = value
-                # domain_instance.update()
-                bulk_operations.append(
-                    UpdateOne(
-                        {"url": domain_instance['url']},
-                        {"$set": update_dict}
-                    )
-                )
-            results = Domain.objects._get_collection().bulk_write(bulk_operations)
-            return Response({"message":f"{len(results)} domains updated successfully"}, status=status.HTTP_200_OK)
-       
-        return Response("Error", status=status.HTTP_400_BAD_REQUEST)
+        if serializer.is_valid():
+            domains = serializer.validated_data
+
+            for updated_domain in domains:
+                filter_query = {'url': updated_domain.get('url')}
+                update_values = {
+                    'set__feeds': updated_domain.get('feeds'),
+                    'set__outbound_domains': updated_domain.get('outbound_domains'),
+                    'set__is_crawlable': updated_domain.get('is_crawlable'),
+                    'set__non_crawlable_reason': updated_domain.get('non_crawlable_reason'),
+                    'set__last_crawled_at': updated_domain.get('last_crawled_at', current_time),
+                    'set__updated_at': updated_domain.get('updated_at', current_time)
+                }
+
+                # Remove None values from the update_values dictionary
+                update_values = {k: v for k, v in update_values.items() if v is not None}
+
+                Domain.objects(**filter_query).update_one(upsert=False, **update_values)
+
+            return Response({"message": "Update Successful.", "data": serializer.data}, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 
 class CheckCrawledDomainAPI(APIView):
-    
-    
     def post(self, request):
         domains = convert_urls_to_domain(request.data['urls'])
         current_time = datetime.utcnow()
