@@ -10,6 +10,7 @@ from celery import shared_task
 def save_articles(data):
     article_url = settings.ARTICLE_URL
     article_url = article_url + "articles/"
+
     try:
         requests.post(article_url, json=data)
     except requests.exceptions.RequestException as e:

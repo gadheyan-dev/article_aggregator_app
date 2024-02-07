@@ -6,7 +6,6 @@ from tasks.tasks import save_articles, find_rss_feeds_from_url
 class SaveArticlesTaskList(APIView):
     
     def post(self, request, format=None):
-        print(request.data)
         result = save_articles.delay(request.data)
         return Response({'task_id': result.id})
     

@@ -129,5 +129,5 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 SUMMARIZER_URL = "http://summarizer-service-container:8000/"
 ARTICLE_URL = "http://article-service-container:8002/"
-TASK_URL = "http://task-service-container:8010/"
+TASK_URL = "http://tasks-service-container:8010/"
 

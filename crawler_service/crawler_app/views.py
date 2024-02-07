@@ -5,30 +5,29 @@ from rest_framework import status
 
 from crawler_app.service.crawler import Crawler
 from crawler_app.service.feed_parser import FeedParser
-from crawler_app.apis.articles.domain import DomainApi
-from crawler_app.apis.articles.article import ArticleApi
+from crawler_app.apis.domain import DomainApi
+from crawler_app.apis.tasks import TasksApi
 
 
 class FindFeed(APIView):
     def post(self, request):
         feed_urls = request.data
-        feeds = None
-        outbound_domains = None
         if not feed_urls:
             return Response({'error': 'Please provide atleast 1 URL to crawl'}, status=400)
         try:
             visited_and_unvisited_domains = DomainApi.fetch_crawled_domains(feed_urls)
             crawled_domains = self.crawl_domains(visited_and_unvisited_domains)
+
             DomainApi.save_domains(crawled_domains)
             DomainApi.save_outbound_domains(crawled_domains)
-            articles = self.parse_feeds(crawled_domains)
-            ArticleApi.save_articles(articles)
+            articles_list = self.parse_feeds(crawled_domains)
+            TasksApi.add_task_to_save_articles(articles_list)
         except Exception as e:
             print("\n\n\n\nException is:")
             import traceback
             print(traceback.format_exc())
             return Response({'error': 'An error occured while crawling...'}, status=400)
-        return Response({'domains': crawled_domains, 'articles': articles}, status=status.HTTP_200_OK)
+        return Response({'domains': crawled_domains, 'articles': articles_list}, status=status.HTTP_200_OK)
 
 
     def crawl_domains(self, domains):
@@ -64,7 +63,7 @@ class FindFeed(APIView):
                 for feed_url in feed['feeds']:
                     feed_obj = FeedParser(feed_url)
                     feed_data = feed_obj.parse_feed()
-                    articles.append(feed_data)
+                    articles.append({'feed_url':feed_url,'articles':feed_data})
                 
         except Exception as e:
             print("\n\n\n\nException is:")

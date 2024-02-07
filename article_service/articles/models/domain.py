@@ -18,7 +18,7 @@ class Domain(mongoengine.Document):
     url = mongoengine.fields.URLField(max_length=URL_MAX_LENGTH, unique=True)
     feeds = mongoengine.fields.ListField(mongoengine.fields.URLField(max_length=URL_MAX_LENGTH), required=False)
     outbound_domains = mongoengine.fields.ListField(mongoengine.fields.URLField(max_length=URL_MAX_LENGTH), required=False)
-    inbound_domains = mongoengine.fields.ListField(mongoengine.fields.URLField(max_length=URL_MAX_LENGTH), required=False)
+    inbound_domains = mongoengine.fields.ListField(mongoengine.fields.URLField(max_length=URL_MAX_LENGTH), required=False, unique=True)
     is_crawlable = mongoengine.fields.BooleanField(default=True)
     non_crawlable_reason = mongoengine.fields.StringField(
         max_length=50,

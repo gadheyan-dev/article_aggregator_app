@@ -4,10 +4,8 @@ services:
   article_service:
     build: article_service/
     container_name: article-service-container
-    command: ["sh", "-c", "pip install debugpy -t /tmp && python /tmp/debugpy --wait-for-client --listen 0.0.0.0:5679 manage.py runserver 0.0.0.0:8002 --nothreading --noreload"]
     ports:
       - "8002:8002"
-      - "5679:5679"
     image: article_service_image
     environment:
       - DJANGO_SETTINGS_MODULE=article_service.settings
