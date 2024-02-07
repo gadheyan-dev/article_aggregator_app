@@ -42,7 +42,8 @@ class FindFeed(APIView):
             visited_and_unvisited_domains = DomainApi.fetch_crawled_domains(feed_urls)
             crawled_domains = self.crawl_domains(visited_and_unvisited_domains)
             response = DomainApi.save_domains(crawled_domains)
-            # DomainApi.parse_feeds(feeds)
+            articles = self.parse_feeds(feeds)
+            return Response(articles, status=400)
         except Exception as e:
             print("\n\n\n\nException is:")
             import traceback
@@ -72,5 +73,20 @@ class FindFeed(APIView):
                 # print(traceback.format_exc())
         
         return domains
+    
+
+    def parse_feeds(self, feeds):
+        articles = []
+        try:
+            for feed in feeds:
+                feed_obj = FeedParser(feed['url'])
+                feed_data = feed_obj.parse_feed()
+                articles.append(feed_data)
+        except Exception as e:
+            print("\n\n\n\nException is:")
+            import traceback
+            print(traceback.format_exc())
+        
+        return articles
     
     

@@ -22,10 +22,10 @@ class DomainApi:
         return response.json()
     
     @staticmethod
-    def parse_feeds(feeds):
+    def parse_and_save_feeds(feeds):
         if not feeds:
             return
-        taks_url = settings.TASK_URL + 'tasks/parse_feeds/'
+        taks_url = settings.TASK_URL + 'tasks/parse__and_save_feeds/'
         data = {"feeds" : feeds}
         response = requests.post(taks_url, json=data)
         return response.json()
