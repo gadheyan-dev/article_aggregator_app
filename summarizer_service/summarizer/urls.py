@@ -1,6 +1,6 @@
 from django.urls import path
-from . import views
+from .views import KeywordExtractionView
 
 urlpatterns = [
-    path("", views.ArticleList.as_view())
+    path('extract/', KeywordExtractionView.as_view(), name='extract-keywords'),
 ]

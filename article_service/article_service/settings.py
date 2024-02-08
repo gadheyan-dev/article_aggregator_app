@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from pathlib import Path
 import os
 import mongoengine
+import sys
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -79,17 +81,8 @@ WSGI_APPLICATION = 'article_service.wsgi.application'
 
 DATABASES = {
     'default': {
-        # 'ENGINE': 'djongo',
-        # 'NAME': os.environ.get('MONGO_INITDB_DATABASE', 'articles_db'),
-        # 'ENFORCE_SCHEMA': False,
-        # 'CLIENT': {
-        #     'host': 'mongodb://article_user:article_password@article_db:27017/'
-        #     # 'HOST': os.environ.get('MONGO_INITDB_ROOT_USERNAME', 'localhost'),
-        #     # 'PORT': os.environ.get('POSTGRES_PORT', '5432'),
-        #     # 'USER': os.environ.get('POSTGRES_USER', 'articles_user'),
-        #     # 'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'articles_password'),
-        # }
-
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / "db.sqlite3",
     }
 }
 
@@ -102,14 +95,26 @@ MONGO_DATABASES = {
         'PASSWORD': 'article_password',
         'ALIAS': 'default',
     },
+    'test': {
+        'NAME': 'test_article_db',
+        'HOST': 'article_db',
+        'PORT': 27017,
+        'USERNAME': 'article_user',
+        'PASSWORD': 'article_password',
+        'ALIAS': 'test',
+    }
 }
+db = "default"
+if 'test' in sys.argv:
+   db = "test"
+   
 mongoengine.connect(
-    db=MONGO_DATABASES['default']['NAME'],
-    host=MONGO_DATABASES['default']['HOST'],
-    port=MONGO_DATABASES['default']['PORT'],
-    username=MONGO_DATABASES['default']['USERNAME'],
-    password=MONGO_DATABASES['default']['PASSWORD'],
-    alias=MONGO_DATABASES['default']['ALIAS']
+    db=MONGO_DATABASES[db]['NAME'],
+    host=MONGO_DATABASES[db]['HOST'],
+    port=MONGO_DATABASES[db]['PORT'],
+    username=MONGO_DATABASES[db]['USERNAME'],
+    password=MONGO_DATABASES[db]['PASSWORD'],
+    alias=MONGO_DATABASES[db]['ALIAS']
 )
 
 
@@ -182,3 +187,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+TEST_RUNNER = 'articles.tests.NoSQLTestRunner'
+

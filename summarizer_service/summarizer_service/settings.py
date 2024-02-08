@@ -144,3 +144,9 @@ LOGGING = {
 
 STATIC_URL = '/app/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
+
+import spacy
+import pytextrank
+
+NLP = spacy.load("en_core_web_sm")
+NLP.add_pipe("textrank")

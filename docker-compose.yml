@@ -73,6 +73,8 @@ services:
       ME_CONFIG_MONGODB_ADMINUSERNAME: article_user
       ME_CONFIG_MONGODB_ADMINPASSWORD: article_password
       ME_CONFIG_MONGODB_URL: mongodb://article_user:article_password@article_db:27017/
+    depends_on:
+      - article_db
     networks:
       - rss_app_network
 

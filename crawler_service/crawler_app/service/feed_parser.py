@@ -53,7 +53,7 @@ class FeedParser():
                 'source': self.feed_url,
                 'publish_date': publish_date.isoformat(),
                 'word_count': word_count,
-                'read_time': read_time,
+                'read_time_in_minutes': read_time,
                 'categories': categories,
                 'top_image': top_image,
                 'summary': summary

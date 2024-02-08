@@ -4,6 +4,27 @@ from mongoengine.errors import ValidationError
 
 
 class Domain(mongoengine.Document):
+    """
+    Represents a domain document with crawling and categorization information.
+
+    Attributes:
+        - url (str): The URL of the domain.
+        - feeds (list of str, optional): List of RSS feed URLs associated with the domain.
+        - outbound_domains (list of str, optional): List of outbound domain URLs.
+        - inbound_domains (list of str, optional): List of inbound domain URLs.
+        - is_crawlable (bool): Indicates if the domain is crawlable.
+        - non_crawlable_reason (str): Reason for non-crawlability (if is_crawlable is False).
+        - last_crawled_at (datetime): Timestamp of the last crawl for the domain.
+        - crawl_delay_in_minutes (int): The delay between crawls in minutes.
+        - created_at (datetime): The timestamp when the domain document was created.
+        - updated_at (datetime): The timestamp when the domain document was last updated.
+
+    Example:
+        domain = Domain(url="https://example.com", feeds=["https://example.com/feed"],
+                        outbound_domains=["https://external1.com", "https://external2.com"],
+                        is_crawlable=True, last_crawled_at=datetime.datetime.utcnow(),
+                        crawl_delay_in_minutes=1440)
+    """
 
     URL_MAX_LENGTH = 2000
     NON_CRAWLABLE_CHOICES = [
