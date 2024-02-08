@@ -17,26 +17,25 @@ class ArticleListAPI(APIView):
                 update_values = {
                     'set__title': updated_article.get('title'),
                     'set__url': updated_article.get('url'),
+                    'set__source': updated_article.get('source'),
                     'set__top_image': updated_article.get('top_image'),
                     'set__authors': updated_article.get('authors'),
                     'set__summary': updated_article.get('summary'),
+                    'set__read_time': updated_article.get('read_time'),
+                    'set__word_count': updated_article.get('word_count'),
+                    'set__categories': updated_article.get('categories'),
                     'set__publish_date': updated_article.get('publish_date'),
                     'set__updated_at': updated_article.get('updated_at', current_time)
                 }
-
                 # Remove None values from the update_values dictionary
-                update_values = {k: v for k, v in update_values.items() if v is not None}
+                update_values = {k: v for k,
+                                 v in update_values.items() if v is not None}
+                Article.objects(
+                    **filter_query).update_one(upsert=True, **update_values)
+            return Response(data={"success": True, "message": "Articles Created Successfully.", "data": serializer.data}, status=status.HTTP_200_OK)
+        return Response(data={"success": False, "errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-                Article.objects(**filter_query).update_one(upsert=True, **update_values)
-
-            return Response({"message": "Update Successful.", "data": serializer.data}, status=status.HTTP_200_OK)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        
     def get(self, request):
         articles = Article.objects.all()
         serializer = ArticleSerializer(articles, many=True)
         return Response(serializer.data)
-
-    

@@ -30,7 +30,7 @@ class FeedParser():
             # Extract information
             title = entry.title
             if 'author' in entry:  # Check if 'author' tag is present in the entry
-                authors = [{'name': entry.author, 'email': ""}]
+                authors = [{'name': entry.author}]
             else:
                 authors = []
             publish_date = entry.published or article.publish_date
@@ -38,8 +38,7 @@ class FeedParser():
             word_count = len(article.text.split())
             read_time = round(word_count / 200, 2)  # Assuming an average reading speed of 200 words per minute
             categories = entry.get('tags', [])
-
-
+            categories = [c["term"] for c in categories]
             # Extract the top image
             top_image = article.top_image
 
@@ -51,7 +50,8 @@ class FeedParser():
                 'url': article.url,
                 'title':title,
                 'authors': authors,
-                'publish_date': publish_date,
+                'source': self.feed_url,
+                'publish_date': publish_date.isoformat(),
                 'word_count': word_count,
                 'read_time': read_time,
                 'categories': categories,

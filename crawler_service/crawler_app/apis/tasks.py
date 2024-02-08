@@ -1,19 +1,21 @@
 import requests
 from django.conf import settings
+import json 
+from django.core.serializers.json import DjangoJSONEncoder
+
 
 class TasksApi:
 
     @staticmethod
-    def add_task_to_save_articles(articles_list):
-        if not articles_list:
+    def add_task_to_save_articles(article_list):
+        if not article_list:
             return
         taks_url = settings.TASK_URL + 'tasks/save_articles/'
-        # articles=json.dumps(articles, indent=4, sort_keys=True, default=str)
-
-        # Open a file in write mode ('w')
         with open('example.json', 'w') as file:
             # Write data to the file
-            file.write(articles_list)
-        for articles_obj in articles_list:
-            response = requests.post(taks_url, json=articles_obj.art)
+            file.write(json.dumps(article_list, indent=4, sort_keys=True, cls=DjangoJSONEncoder))
+        for articles_obj in article_list:
+            articles = articles_obj["articles"]
+            # articles = json.dumps(articles, indent=4, sort_keys=True, cls=DjangoJSONEncoder)
+            response = requests.post(taks_url, json=articles)
         return response.json()

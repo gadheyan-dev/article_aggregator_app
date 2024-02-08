@@ -12,7 +12,7 @@ def save_articles(data):
     article_url = article_url + "articles/"
 
     try:
-        requests.post(article_url, json=data)
+        response = requests.post(article_url, json=data)
     except requests.exceptions.RequestException as e:
         # Log error
         print("error: ", e)

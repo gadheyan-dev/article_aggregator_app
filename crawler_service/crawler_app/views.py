@@ -17,7 +17,7 @@ class FindFeed(APIView):
         try:
             visited_and_unvisited_domains = DomainApi.fetch_crawled_domains(feed_urls)
             crawled_domains = self.crawl_domains(visited_and_unvisited_domains)
-
+            # TODO: check for social media before saving
             DomainApi.save_domains(crawled_domains)
             DomainApi.save_outbound_domains(crawled_domains)
             articles_list = self.parse_feeds(crawled_domains)
