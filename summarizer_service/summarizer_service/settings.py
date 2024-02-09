@@ -150,3 +150,4 @@ import pytextrank
 
 NLP = spacy.load("en_core_web_sm")
 NLP.add_pipe("textrank")
+MAXIMUM_NUMBER_OF_KEYWORDS = 30

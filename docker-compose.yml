@@ -55,6 +55,8 @@ services:
     container_name: article-db-container
     image: mongo
     restart: always
+    ports:
+      - 27017:27017
     environment:
       MONGO_INITDB_ROOT_USERNAME: article_user
       MONGO_INITDB_ROOT_PASSWORD: article_password

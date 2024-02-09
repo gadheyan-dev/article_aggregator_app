@@ -2,7 +2,6 @@ import mongoengine
 import datetime
 
 
-
 class Author(mongoengine.EmbeddedDocument):
     """
     Represents an author of an article.
@@ -16,6 +15,26 @@ class Author(mongoengine.EmbeddedDocument):
     """
     name = mongoengine.fields.StringField(max_length=512, required=True)
     email = mongoengine.fields.EmailField(required=False)
+
+
+class Keyword(mongoengine.EmbeddedDocument):
+    """
+    Represents keywords of an article.
+
+    Attributes:
+        - text (str): The text of the keyword.
+        - rank (str): A rank to represent how well a keyword is present in the article.
+        - count (str): Number of occurences in the keyword.
+
+    Example:
+        author = Author(name="John Doe", email="john.doe@example.com")
+    """
+    text = mongoengine.fields.StringField(max_length=2000, required=True)
+    rank = mongoengine.fields.DecimalField(
+        required=False, precision=20, rounding='ROUND_HALF_UP')
+    count = mongoengine.fields.IntField(required=False)
+
+
 
 class Article(mongoengine.Document):
     """
@@ -46,11 +65,17 @@ class Article(mongoengine.Document):
     url = mongoengine.fields.URLField(max_length=2000, required=True)
     source = mongoengine.fields.URLField(max_length=2000, required=False)
     top_image = mongoengine.fields.URLField(max_length=2000, required=False)
-    authors = mongoengine.fields.ListField(mongoengine.fields.EmbeddedDocumentField(Author), required = False) 
-    categories = mongoengine.fields.ListField(mongoengine.fields.StringField(), required=False)
+    authors = mongoengine.fields.ListField(
+        mongoengine.fields.EmbeddedDocumentField(Author), required=False)
+    keywords = mongoengine.fields.ListField(
+        mongoengine.fields.EmbeddedDocumentField(Keyword), required=False)
+    categories = mongoengine.fields.ListField(
+        mongoengine.fields.StringField(), required=False)
     summary = mongoengine.fields.StringField(required=False)
     word_count = mongoengine.fields.IntField(required=False)
     read_time_in_minutes = mongoengine.fields.DecimalField(required=False)
     publish_date = mongoengine.fields.DateTimeField(required=False)
-    created_at = mongoengine.fields.DateTimeField(default=datetime.datetime.utcnow)
-    updated_at = mongoengine.fields.DateTimeField(default=datetime.datetime.utcnow)
+    created_at = mongoengine.fields.DateTimeField(
+        default=datetime.datetime.utcnow)
+    updated_at = mongoengine.fields.DateTimeField(
+        default=datetime.datetime.utcnow)

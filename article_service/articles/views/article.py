@@ -3,7 +3,8 @@ from articles.models.article import Article
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from articles.serializers.article import ArticleSerializer
+from articles.serializers.article import ArticleSerializer, ArticlePipelineSerializer
+from mongoengine import Q
 
 
 class ArticleListAPI(APIView):
@@ -72,6 +73,7 @@ class ArticleListAPI(APIView):
                     'set__title': updated_article.get('title'),
                     'set__url': updated_article.get('url'),
                     'set__source': updated_article.get('source'),
+                    'set__keywords': updated_article.get('keywords'),
                     'set__top_image': updated_article.get('top_image'),
                     'set__authors': updated_article.get('authors'),
                     'set__summary': updated_article.get('summary'),
@@ -86,9 +88,55 @@ class ArticleListAPI(APIView):
                 Article.objects(
                     **filter_query).update_one(upsert=True, **update_values)
             return Response(data={"success": True, "message": "Articles Created/Updated Successfully.", "data": serializer.data}, status=status.HTTP_200_OK)
+        # print(serializer.errors)
         return Response(data={"success": False, "errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
     def get(self, request):
-        articles = Article.objects.all()
-        serializer = ArticleSerializer(articles, many=True)
-        return Response(serializer.data)
+        keyword = request.data.get("keyword", "technology")
+        pipeline = [
+            {"$unwind": "$keywords"},
+            {"$match": {"keywords.text": {"$regex": f'{keyword}', "$options": 'i'}}},
+            {"$addFields": {"exact": {"$eq": ["$keywords.text", keyword]}}},
+            {"$addFields": {"read_time_score": {
+                "$switch": {
+                    "branches": [
+                        {"case": {
+                            "$lt": ["$read_time_in_minutes", 1]}, "then": 2},
+                        {"case": {
+                            "$lte": ["$read_time_in_minutes", 2]}, "then": 8},
+                        {"case": {
+                            "$lte": ["$read_time_in_minutes", 10]}, "then": 10},
+                        {"case": {
+                            "$lte": ["$read_time_in_minutes", 20]}, "then": 8},
+                        {"case": {
+                            "$lte": ["$read_time_in_minutes", 50]}, "then": 6},
+                        {"case": {
+                            "$lte": ["$read_time_in_minutes", 90]}, "then": 4},
+                        {"case": {
+                            "$gt": ["$read_time_in_minutes", 90]}, "then": 2}
+                    ],
+                    "default": 0
+                }
+            }}},
+      {"$group": {
+        "_id": "$_id",  # Group by the article id
+        "url": {"$first": "$url"},  # Use $first to get the url
+        "title": {"$first": "$title"},
+        "top_image": {"$first": "$top_image"},
+        "summary": {"$first": "$summary"},
+        "published_date": {"$first": "$publish_date"},
+        "keywords": {"$push": "$keywords"},  # Use $push for arrays
+        "exact": {"$first": "$exact"},
+        "read_time_score": {"$first": "$read_time_score"},
+    }},
+
+            {"$project": {"_id": 1, "url": 1, "title": 1, "top_image": 1, "summary": 1,"published_date":1,
+                          "keywords": 1, "exact": 1, "read_time_score": 1}}
+        ]
+        result = Article.objects.aggregate(*pipeline)
+        # print([doc for doc in result])
+        # Fetch the documents based on the sorted IDs
+        # document_ids = [doc["_id"] for doc in result]
+        # documents = Article.objects(_id__in=document_ids)
+        serializer = ArticlePipelineSerializer(result, many=True)
+        return Response(data={"success": True, "data": serializer.data}, status=status.HTTP_200_OK)

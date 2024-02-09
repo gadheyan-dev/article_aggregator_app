@@ -21,6 +21,6 @@ class KeywordExtractionView(views.APIView):
                 doc = nlp(text)
 
                 result.append({"url": url, "keywords": [{'text': phrase.text, 'rank': phrase.rank, 'count': phrase.count}
-                                                        for phrase in doc._.phrases]})
+                                                        for phrase in doc._.phrases[:settings.MAXIMUM_NUMBER_OF_KEYWORDS]]})
             return Response(result, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
