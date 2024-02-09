@@ -73,6 +73,7 @@ class ArticleListAPI(APIView):
                     'set__title': updated_article.get('title'),
                     'set__url': updated_article.get('url'),
                     'set__source': updated_article.get('source'),
+                    'set__domain': updated_article.get('domain'),
                     'set__keywords': updated_article.get('keywords'),
                     'set__top_image': updated_article.get('top_image'),
                     'set__authors': updated_article.get('authors'),
@@ -93,10 +94,65 @@ class ArticleListAPI(APIView):
 
     def get(self, request):
         keyword = request.data.get("keyword", "technology")
+    #     pipeline = [
+    #         {"$unwind": "$keywords"},
+    #         {"$match": {"keywords.text": {"$regex": f'{keyword}', "$options": 'i'}}},
+    #         {"$addFields": {"exact": {"$eq": ["$keywords.text", keyword]}}},
+    #         {"$addFields": {"read_time_score": {
+    #             "$switch": {
+    #                 "branches": [
+    #                     {"case": {
+    #                         "$lt": ["$read_time_in_minutes", 1]}, "then": 2},
+    #                     {"case": {
+    #                         "$lte": ["$read_time_in_minutes", 2]}, "then": 8},
+    #                     {"case": {
+    #                         "$lte": ["$read_time_in_minutes", 10]}, "then": 10},
+    #                     {"case": {
+    #                         "$lte": ["$read_time_in_minutes", 20]}, "then": 8},
+    #                     {"case": {
+    #                         "$lte": ["$read_time_in_minutes", 50]}, "then": 6},
+    #                     {"case": {
+    #                         "$lte": ["$read_time_in_minutes", 90]}, "then": 4},
+    #                     {"case": {
+    #                         "$gt": ["$read_time_in_minutes", 90]}, "then": 2}
+    #                 ],
+    #                 "default": 0
+    #             }
+    #         }}},
+    #   {"$group": {
+    #     "_id": "$_id",  # Group by the article id
+    #     "url": {"$first": "$url"},  # Use $first to get the url
+    #     "title": {"$first": "$title"},
+    #     "top_image": {"$first": "$top_image"},
+    #     "summary": {"$first": "$summary"},
+    #     "published_date": {"$first": "$publish_date"},
+    #     "keywords": {"$push": "$keywords"},  # Use $push for arrays
+    #     "exact": {"$first": "$exact"},
+    #     "read_time_score": {"$first": "$read_time_score"},
+    # }},
+
+    #         {"$project": {"_id": 1, "url": 1, "title": 1, "top_image": 1, "summary": 1,"published_date":1,
+    #                       "keywords": 1, "exact": 1, "read_time_score": 1}}
+    #     ]
         pipeline = [
             {"$unwind": "$keywords"},
             {"$match": {"keywords.text": {"$regex": f'{keyword}', "$options": 'i'}}},
+            {"$addFields": {"keyword_score": "$keywords.score"}},
             {"$addFields": {"exact": {"$eq": ["$keywords.text", keyword]}}},
+            {"$addFields": {"title_score": {
+                "$cond": {
+                    "if": {"$regexMatch": {"input": "$title", "regex": f'{keyword}', "options": "i"}},
+                    "then": 15,
+                    "else": 0
+                }
+            }}},
+            {"$addFields": {"category_score": {
+                "$cond": {
+                    "if": {"$in": [keyword, "$categories"]},
+                    "then": 10,
+                    "else": 0
+                }
+            }}},
             {"$addFields": {"read_time_score": {
                 "$switch": {
                     "branches": [
@@ -118,25 +174,65 @@ class ArticleListAPI(APIView):
                     "default": 0
                 }
             }}},
-      {"$group": {
-        "_id": "$_id",  # Group by the article id
-        "url": {"$first": "$url"},  # Use $first to get the url
-        "title": {"$first": "$title"},
-        "top_image": {"$first": "$top_image"},
-        "summary": {"$first": "$summary"},
-        "published_date": {"$first": "$publish_date"},
-        "keywords": {"$push": "$keywords"},  # Use $push for arrays
-        "exact": {"$first": "$exact"},
-        "read_time_score": {"$first": "$read_time_score"},
-    }},
-
-            {"$project": {"_id": 1, "url": 1, "title": 1, "top_image": 1, "summary": 1,"published_date":1,
-                          "keywords": 1, "exact": 1, "read_time_score": 1}}
+            {"$addFields": {"recency_score": {
+                "$let": {
+                    "vars": {
+                        "diffInDays": {
+                            "$divide": [
+                                {"$subtract": [
+                                    datetime.utcnow(), "$publish_date"]},
+                                86400000  # milliseconds in a day
+                            ]
+                        }
+                    },
+                    "in": {
+                        "$cond": {
+                            "if": {"$lt": ["$$diffInDays", 5]},
+                            "then": 10,
+                            "else": {
+                                "$switch": {
+                                    "branches": [
+                                        {"case": {
+                                            "$lt": ["$$diffInDays", 30]}, "then": 9},
+                                        {"case": {
+                                            "$lt": ["$$diffInDays", 90]}, "then": 8},
+                                        {"case": {
+                                            "$lt": ["$$diffInDays", 180]}, "then": 7},
+                                        {"case": {
+                                            "$lt": ["$$diffInDays", 365]}, "then": 6},
+                                        {"case": {
+                                            "$lt": ["$$diffInDays", 730]}, "then": 4},
+                                    ],
+                                    "default": 2
+                                }
+                            }
+                        }
+                    }
+                }
+            }}},
+            {"$addFields": {"total_score": {
+                "$add": ["$title_score", "$category_score", "$read_time_score", "$recency_score", "$keyword_score"]
+            }}},
+            {"$group": {
+                "_id": "$_id",  # Group by the article id
+                "url": {"$first": "$url"},  # Use $first to get the url
+                "title": {"$first": "$title"},
+                "top_image": {"$first": "$top_image"},
+                "summary": {"$first": "$summary"},
+                "published_date": {"$first": "$publish_date"},
+                "keywords": {"$push": "$keywords"},  # Use $push for arrays
+                "exact": {"$first": "$exact"},
+                "title_score": {"$first": "$title_score"},
+                "category_score": {"$first": "$category_score"},
+                "read_time_score": {"$first": "$read_time_score"},
+                "recency_score": {"$first": "$recency_score"},
+                "keyword_score": {"$first": "$keyword_score"},
+                "total_score": {"$first": "$total_score"},
+            }},
+            {"$project": {"_id": 1, "url": 1, "title": 1, "top_image": 1, "summary": 1, "published_date": 1,
+                          "keywords": 1, "exact": 1, 'title_score': 1, 'category_score': 1, 'read_time_score': 1, 'recency_score': 1, "total_score": 1, 'keyword_score': 1}},
+            { "$sort": { "total_score": -1 } }
         ]
         result = Article.objects.aggregate(*pipeline)
-        # print([doc for doc in result])
-        # Fetch the documents based on the sorted IDs
-        # document_ids = [doc["_id"] for doc in result]
-        # documents = Article.objects(_id__in=document_ids)
         serializer = ArticlePipelineSerializer(result, many=True)
         return Response(data={"success": True, "data": serializer.data}, status=status.HTTP_200_OK)

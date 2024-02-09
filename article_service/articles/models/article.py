@@ -32,6 +32,8 @@ class Keyword(mongoengine.EmbeddedDocument):
     text = mongoengine.fields.StringField(max_length=2000, required=True)
     rank = mongoengine.fields.DecimalField(
         required=False, precision=20, rounding='ROUND_HALF_UP')
+    score = mongoengine.fields.DecimalField(
+        required=False, precision=4, rounding='ROUND_HALF_UP')
     count = mongoengine.fields.IntField(required=False)
 
 
@@ -64,6 +66,7 @@ class Article(mongoengine.Document):
     title = mongoengine.fields.StringField(max_length=512, required=True)
     url = mongoengine.fields.URLField(max_length=2000, required=True)
     source = mongoengine.fields.URLField(max_length=2000, required=False)
+    domain = mongoengine.fields.URLField(max_length=2000, required=False)
     top_image = mongoengine.fields.URLField(max_length=2000, required=False)
     authors = mongoengine.fields.ListField(
         mongoengine.fields.EmbeddedDocumentField(Author), required=False)

@@ -15,7 +15,8 @@ class FindFeed(APIView):
         if not feed_urls:
             return Response({'error': 'Please provide atleast 1 URL to crawl'}, status=400)
         try:
-            visited_and_unvisited_domains = DomainApi.fetch_crawled_domains(feed_urls)
+            visited_and_unvisited_domains = DomainApi.fetch_crawled_domains(
+                feed_urls)
             crawled_domains = self.crawl_domains(visited_and_unvisited_domains)
             # TODO: check for social media before saving
             DomainApi.save_domains(crawled_domains)
@@ -28,7 +29,6 @@ class FindFeed(APIView):
             print(traceback.format_exc())
             return Response({'error': 'An error occured while crawling...'}, status=400)
         return Response({'domains': crawled_domains, 'articles': articles_list}, status=status.HTTP_200_OK)
-
 
     def crawl_domains(self, domains):
         for domain in domains:
@@ -49,27 +49,26 @@ class FindFeed(APIView):
                 # print("\n\n\n\nException is:")
                 # import traceback
                 # print(traceback.format_exc())
-        
-        return domains
-    
 
-    def parse_feeds(self, feeds):
+        return domains
+
+    def parse_feeds(self, domains):
         articles = []
-        if not feeds:
+        if not domains:
             # Raise Exception
             return []
         try:
-            for feed in feeds:
-                for feed_url in feed['feeds']:
-                    feed_obj = FeedParser(feed_url)
+            for domain in domains:
+
+                for feed_url in domain['feeds']:
+                    feed_obj = FeedParser(feed_url, domain['url'])
                     feed_data = feed_obj.parse_feed()
-                    articles.append({'feed_url':feed_url,'articles':feed_data})
-                
+                    articles.append(
+                        {'feed_url': feed_url, 'articles': feed_data})
+
         except Exception as e:
             print("\n\n\n\nException is:")
             import traceback
             print(traceback.format_exc())
-        
+
         return articles
-    
-    

@@ -6,8 +6,9 @@ from crawler_app.apis.summarizer import SummarizerApi
 from crawler_app.utils.common_util import join_lists
 
 class FeedParser():
-    def __init__(self, feed_url) -> None:
+    def __init__(self, feed_url, domain) -> None:
         self.feed_url = feed_url
+        self.domain = domain
 
 
     def parse_feed(self):
@@ -18,7 +19,7 @@ class FeedParser():
 
         entries = []
 
-        # TODO: Delete this code
+        # TODO: Delete this code and add a code to crawl only latest entries
         count = -1
         keywords_request = []
         # Iterate through each entry in the feed
@@ -56,6 +57,7 @@ class FeedParser():
                 'title':title,
                 'authors': authors,
                 'source': self.feed_url,
+                'domain': self.domain,
                 'word_count': word_count,
                 'read_time_in_minutes': read_time,
                 'categories': categories,
