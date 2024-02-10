@@ -1,4 +1,4 @@
-from rest_framework_mongoengine import serializers, fields
+from rest_framework_mongoengine import serializers
 from articles.models.domain import Domain
 from articles.utils.common_utils import convert_urls_to_domain
 

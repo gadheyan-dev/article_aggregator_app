@@ -4,7 +4,6 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from articles.serializers.article import ArticleSerializer, ArticlePipelineSerializer
-from mongoengine import Q
 
 
 class ArticleListAPI(APIView):
@@ -36,10 +35,6 @@ class ArticleListAPI(APIView):
                         "success": False,
                         "errors": [serializer_errors]
                     }
-
-        Notes:
-            - The request data should be a list of articles serialized using the
-            ArticleSerializer. Each article is identified by its URL.
 
         Example:
             An example request body:
@@ -93,47 +88,66 @@ class ArticleListAPI(APIView):
         return Response(data={"success": False, "errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
     def get(self, request):
-        keyword = request.data.get("keyword", "technology")
-    #     pipeline = [
-    #         {"$unwind": "$keywords"},
-    #         {"$match": {"keywords.text": {"$regex": f'{keyword}', "$options": 'i'}}},
-    #         {"$addFields": {"exact": {"$eq": ["$keywords.text", keyword]}}},
-    #         {"$addFields": {"read_time_score": {
-    #             "$switch": {
-    #                 "branches": [
-    #                     {"case": {
-    #                         "$lt": ["$read_time_in_minutes", 1]}, "then": 2},
-    #                     {"case": {
-    #                         "$lte": ["$read_time_in_minutes", 2]}, "then": 8},
-    #                     {"case": {
-    #                         "$lte": ["$read_time_in_minutes", 10]}, "then": 10},
-    #                     {"case": {
-    #                         "$lte": ["$read_time_in_minutes", 20]}, "then": 8},
-    #                     {"case": {
-    #                         "$lte": ["$read_time_in_minutes", 50]}, "then": 6},
-    #                     {"case": {
-    #                         "$lte": ["$read_time_in_minutes", 90]}, "then": 4},
-    #                     {"case": {
-    #                         "$gt": ["$read_time_in_minutes", 90]}, "then": 2}
-    #                 ],
-    #                 "default": 0
-    #             }
-    #         }}},
-    #   {"$group": {
-    #     "_id": "$_id",  # Group by the article id
-    #     "url": {"$first": "$url"},  # Use $first to get the url
-    #     "title": {"$first": "$title"},
-    #     "top_image": {"$first": "$top_image"},
-    #     "summary": {"$first": "$summary"},
-    #     "published_date": {"$first": "$publish_date"},
-    #     "keywords": {"$push": "$keywords"},  # Use $push for arrays
-    #     "exact": {"$first": "$exact"},
-    #     "read_time_score": {"$first": "$read_time_score"},
-    # }},
+        """
+        API endpoint for retrieving articles based on a search keyword.
 
-    #         {"$project": {"_id": 1, "url": 1, "title": 1, "top_image": 1, "summary": 1,"published_date":1,
-    #                       "keywords": 1, "exact": 1, "read_time_score": 1}}
-    #     ]
+        This endpoint allows the retrieval of articles from the database based on a provided search keyword.
+        The articles are sorted by a scoring mechanism that considers various factors such as keyword matching,
+        title matching, category matching, read time, recency, and overall relevance.
+
+        Parameters:
+            - request (HttpRequest): The HTTP request object containing the search keyword.
+
+        Returns:
+            - Response: A JSON response containing the retrieved articles and their scores.
+
+                - Success (HTTP 200 OK):
+                    {
+                        "success": True,
+                        "data": [serialized_articles]
+                    }
+
+                - Failure (HTTP 400 Bad Request):
+                    {
+                        "success": False,
+                        "errors": {"search": "search param is empty"}
+                    }
+
+        Example:
+            An example successful response:
+            {
+                "success": True,
+                "data": [
+                    {
+                        "_id": "article_id",
+                        "url": "https://example.com/article",
+                        "title": "Sample Article",
+                        "top_image": "https://example.com/image.jpg",
+                        "summary": "A brief summary of the article.",
+                        "published_date": "2024-02-06T12:00:00Z",
+                        "keywords": [{"text": "keyword", "score": 10}],
+                        "exact": True,
+                        "title_score": 15,
+                        "category_score": 10,
+                        "read_time_score": 8,
+                        "recency_score": 10,
+                        "keyword_score": 10.0,
+                        "total_score": 53.0
+                    },
+                    ...
+                ]
+            }
+
+            An example failure response:
+            {
+                "success": False,
+                "errors": {"search": "search param is empty"}
+            }
+        """
+        keyword = request.query_params.get("search", "")
+        if not keyword:
+            return Response(data={"success": False, "errors": {"search": "search param is empty"}}, status=status.HTTP_400_BAD_REQUEST)
+
         pipeline = [
             {"$unwind": "$keywords"},
             {"$match": {"keywords.text": {"$regex": f'{keyword}', "$options": 'i'}}},
@@ -231,7 +245,7 @@ class ArticleListAPI(APIView):
             }},
             {"$project": {"_id": 1, "url": 1, "title": 1, "top_image": 1, "summary": 1, "published_date": 1,
                           "keywords": 1, "exact": 1, 'title_score': 1, 'category_score': 1, 'read_time_score': 1, 'recency_score': 1, "total_score": 1, 'keyword_score': 1}},
-            { "$sort": { "total_score": -1 } }
+            {"$sort": {"total_score": -1}}
         ]
         result = Article.objects.aggregate(*pipeline)
         serializer = ArticlePipelineSerializer(result, many=True)

@@ -1,8 +1,8 @@
-import ListGroup from "./components/ListGroup";
+import ArticleList from "./components/ArticleList";
 
 function App(){
   return <div>
-    <ListGroup/>
+    <ArticleList/>
   </div>;
 }
 

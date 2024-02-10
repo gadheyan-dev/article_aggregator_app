@@ -63,7 +63,6 @@ class DomainsAPI(APIView):
                     'set__updated_at': updated_domain.get('updated_at', current_time)
                 }
 
-                # Remove None values from the update_values dictionary
                 update_values = {k: v for k,
                                  v in update_values.items() if v is not None}
 
@@ -77,6 +76,46 @@ class DomainsAPI(APIView):
 
 class CheckCrawledDomainAPI(APIView):
     def post(self, request):
+        """
+        API endpoint for checking the crawlability status of domains.
+
+        This endpoint takes a list of URLs, extracts their domains, and checks their crawlability status.
+        The crawlability is determined based on the last crawled time and the specified crawl delay for each domain.
+
+        Parameters:
+            - request (HttpRequest): The HTTP request object containing a list of URLs.
+
+        Returns:
+            - Response: A JSON response containing the crawlability status of each domain.
+
+                - Success (HTTP 200 OK):
+                    {
+                        "visited": [
+                            {
+                                "_id": "domain_id",
+                                "url": "https://example.com",
+                                "is_crawlable": False,
+                                "visited": True
+                            },
+                            ...
+                        ],
+                        "unvisited": [
+                            {
+                                "url": "https://newdomain.com",
+                                "is_crawlable": True,
+                                "visited": True
+                            },
+                            ...
+                        ]
+                    }
+
+                - Failure (HTTP 400 Bad Request):
+                    {
+                        "success": False,
+                        "errors": {"urls": "Invalid or empty list of URLs"}
+                    }
+        """
+        # TODO: Currently this function is reduntant, since domains are already cleaned when receiving.. May be useful when request received from a different channel.
         domains = convert_urls_to_domain(request.data['urls'])
         current_time = datetime.utcnow()
         pipeline = [
@@ -90,7 +129,7 @@ class CheckCrawledDomainAPI(APIView):
                     'time_diff_minutes': {
                         '$divide': [
                             {'$subtract': [current_time, '$last_crawled_at']},
-                            60000  # milliseconds to minutes conversion factor
+                            60000
                         ]
                     }
                 }
