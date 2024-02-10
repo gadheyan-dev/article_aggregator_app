@@ -31,6 +31,7 @@ class Domain(mongoengine.Document):
         ('SOCIAL_MEDIA', 'Social Media'),
         ('PERMISSION_DENIED', 'Permission Denied'),
         ('NOT_ARTICLE_WEBSITE', 'Not an Article Website'),
+        ('NOT_REACHABLE', 'Website Not Reachable'),
         ('NOT_APPLICABLE', 'Not Applicable'),
     ]
     _id = mongoengine.fields.ObjectIdField()

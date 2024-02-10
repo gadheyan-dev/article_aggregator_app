@@ -7,6 +7,13 @@ from crawler_app.service.crawler import Crawler
 from crawler_app.service.feed_parser import FeedParser
 from crawler_app.apis.domain import DomainApi
 from crawler_app.apis.tasks import TasksApi
+from crawler_app.constants import NOT_REACHABLE, NOT_CRAWLABLE
+from crawler_exceptions.exceptions import WebsiteNotReachableException, CrawlNotAllowedException
+import logging
+
+logger = logging.getLogger(__name__)
+
+
 
 
 class FindFeed(APIView):
@@ -24,31 +31,32 @@ class FindFeed(APIView):
             articles_list = self.parse_feeds(crawled_domains)
             TasksApi.add_task_to_save_articles(articles_list)
         except Exception as e:
-            print("\n\n\n\nException is:")
-            import traceback
-            print(traceback.format_exc())
+            logger.exception("Exception Occured:\n %s", e)
             return Response({'error': 'An error occured while crawling...'}, status=400)
         return Response({'domains': crawled_domains, 'articles': articles_list}, status=status.HTTP_200_OK)
 
     def crawl_domains(self, domains):
         for domain in domains:
             try:
-                # print("Url Is:")
-                # print(url)
                 url = domain['url']
                 crawler = Crawler(url)
                 crawler.crawl()
-                # feeds[url] = {'feeds': crawler.get_feeds(), 'outbound_domains': crawler.get_outbound_domains(), 'crawlable':True}
                 domain['feeds'] = crawler.get_feeds()
                 domain['outbound_domains'] = crawler.get_outbound_domains()
 
-            except Exception as e:
+            except (WebsiteNotReachableException, CrawlNotAllowedException) as e:
                 domain['feeds'] = []
                 domain['outbound_domains'] = []
-                # print("URL Is:" + url)
-                # print("\n\n\n\nException is:")
-                # import traceback
-                # print(traceback.format_exc())
+                domain['is_crawlable'] = False
+                # TODO:
+                 # Log error
+                if isinstance(e, WebsiteNotReachableException):
+                    domain['non_crawlable_reason'] = NOT_REACHABLE
+                    logger.exception("Exception Occured:\n %s", e)
+                if isinstance(e, CrawlNotAllowedException):
+                    domain['non_crawlable_reason'] = NOT_CRAWLABLE
+                    logger.exception("Exception Occured:\n %s", e)
+                
 
         return domains
 

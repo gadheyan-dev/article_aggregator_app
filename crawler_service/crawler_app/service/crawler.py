@@ -3,10 +3,11 @@ from bs4 import BeautifulSoup
 import tldextract
 from urllib.parse import urljoin
 from crawler_app.utils.robot_parser_util import CrawlerRobotParserUtil
+from crawler_app.utils.common_util import is_website_reachable
+from crawler_exceptions.exceptions import WebsiteNotReachableException, CrawlNotAllowedException
+import logging
 
-class WebsiteNotReachableException(Exception):
-    pass
-
+logger = logging.getLogger(__name__)
 
 class Crawler:
     
@@ -20,32 +21,28 @@ class Crawler:
 
     
     def crawl(self):
-        print("Started Crawling...\n")
-        print("Checking if crawling allowed for url:%s...\n" %(self.url))
+        logger.info("Crawler Started For Website:%s\n" %(self.url))
+        if not is_website_reachable(self.url):
+            raise WebsiteNotReachableException()
+        logger.info("Verifying robots.txt to ensure crawling is allowed.")
         crlr_checker = CrawlerRobotParserUtil(self.url)
         if not crlr_checker.crawl_allowed():
-            print("Crawling not allowed in this url... exiting...\n")
-            return None
-
+            raise CrawlNotAllowedException()
         self.response = ""
         self.soup = None
-        try:
-            self.__initialise_bs4()
-        except (requests.RequestException, WebsiteNotReachableException) as e:
-            print(f"Error accessing {self.url}: {e}")
-            return
 
+        self.__initialise_bs4()
         self.__get_common_feeds()
         self.__get_all_rss_feeds()
         self.__get_outbound_domains()
-        print("Ended Crawling")
-
+        logger.info("Ended Crawling For URL: %s.\n" %(self.url))
+        logger.info("---------------------------------------------------------")
 
 
     def __initialise_bs4(self):
         self.response = requests.get(self.url)
         if self.response.status_code != 200:
-            raise WebsiteNotReachableException("Could not reach website")
+            raise WebsiteNotReachableException()
         self.soup = BeautifulSoup(self.response.content, 'html.parser')
 
     def __get_common_feeds(self):
@@ -61,7 +58,6 @@ class Crawler:
 
 
     def __get_outbound_domains(self):
-        # links = [a.get('href') for a in self.soup.find_all('a', href=True)]
         for a in self.soup.find_all('a', href=True):
             link_tld = tldextract.extract(a.get('href'))
             if not(link_tld.domain and link_tld.suffix):

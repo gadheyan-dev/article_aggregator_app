@@ -1,4 +1,13 @@
 
+import requests
+
+def is_website_reachable(url):
+    try:
+        response = requests.get(url)
+        return response.status_code >= 200 and response.status_code < 300
+    except requests.RequestException:
+        return False
+    
 def join_lists(list1, list2, on="url", items_to_add=["keywords"]):
     result = []
 
