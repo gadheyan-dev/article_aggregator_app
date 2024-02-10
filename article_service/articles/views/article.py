@@ -144,6 +144,10 @@ class ArticleListAPI(APIView):
                 "errors": {"search": "search param is empty"}
             }
         """
+        # TODO: 
+        # Things To Add To Scoring
+        #   1.Add Hidden Behind Paywall Score(Negative Score)
+
         keyword = request.query_params.get("search", "")
         if not keyword:
             return Response(data={"success": False, "errors": {"search": "search param is empty"}}, status=status.HTTP_400_BAD_REQUEST)
@@ -152,7 +156,6 @@ class ArticleListAPI(APIView):
             {"$unwind": "$keywords"},
             {"$match": {"keywords.text": {"$regex": f'{keyword}', "$options": 'i'}}},
             {"$addFields": {"keyword_score": "$keywords.score"}},
-            {"$addFields": {"exact": {"$eq": ["$keywords.text", keyword]}}},
             {"$addFields": {"title_score": {
                 "$cond": {
                     "if": {"$regexMatch": {"input": "$title", "regex": f'{keyword}', "options": "i"}},
@@ -163,6 +166,13 @@ class ArticleListAPI(APIView):
             {"$addFields": {"category_score": {
                 "$cond": {
                     "if": {"$in": [keyword, "$categories"]},
+                    "then": 10,
+                    "else": 0
+                }
+            }}},
+            {"$addFields": {"exact_score": {
+                "$cond": {
+                    "if": {"$eq": ["$keywords.text", keyword]},
                     "then": 10,
                     "else": 0
                 }
@@ -224,27 +234,68 @@ class ArticleListAPI(APIView):
                     }
                 }
             }}},
+            {
+                "$lookup": {
+                    "from": "domain",
+                    "localField": "domain",
+                    "foreignField": "url",
+                    "as": "domain_data"
+                }
+            },
+            {
+                "$unwind": "$domain_data"
+            },
+            {
+                "$addFields": {
+                    "inbound_domain_count": {"$size": "$domain_data.inbound_domains"},
+                }
+            },
+            {
+                "$addFields": {
+                    "inbound_domain_score": {
+                        "$switch": {
+                            "branches": [
+                                {"case": {
+                                    "$lt": ["$inbound_domain_count", 1]}, "then": 1},
+                                {"case": {
+                                    "$lt": ["$inbound_domain_count", 5]}, "then": 3},
+                                {"case": {
+                                    "$lt": ["$inbound_domain_count", 10]}, "then": 5},
+                                {"case": {
+                                    "$lt": ["$inbound_domain_count", 20]}, "then": 7},
+                                {"case": {
+                                    "$gte": ["$inbound_domain_count", 20]}, "then": 10}
+                            ],
+                            "default": 0
+                        }
+                    }
+                }
+            },
             {"$addFields": {"total_score": {
-                "$add": ["$title_score", "$category_score", "$read_time_score", "$recency_score", "$keyword_score"]
+                "$add": ["$title_score", "$category_score", "$read_time_score", "$recency_score", "$keyword_score", "$inbound_domain_score"]
             }}},
             {"$group": {
-                "_id": "$_id",  # Group by the article id
-                "url": {"$first": "$url"},  # Use $first to get the url
+                "_id": "$_id",
+                "url": {"$first": "$url"},
                 "title": {"$first": "$title"},
                 "top_image": {"$first": "$top_image"},
+                "authors": {"$first": "$authors"},
                 "summary": {"$first": "$summary"},
-                "published_date": {"$first": "$publish_date"},
-                "keywords": {"$push": "$keywords"},  # Use $push for arrays
-                "exact": {"$first": "$exact"},
-                "title_score": {"$first": "$title_score"},
-                "category_score": {"$first": "$category_score"},
-                "read_time_score": {"$first": "$read_time_score"},
-                "recency_score": {"$first": "$recency_score"},
-                "keyword_score": {"$first": "$keyword_score"},
+                "read_time_in_minutes": {"$first": "$read_time_in_minutes"},
+                "publish_date": {"$first": "$publish_date"},
+                # "keywords": {"$push": "$keywords"},
+                # "exact": {"$first": "$exact"},
+                # "title_score": {"$first": "$title_score"},
+                # "category_score": {"$first": "$category_score"},
+                # "read_time_score": {"$first": "$read_time_score"},
+                # "recency_score": {"$first": "$recency_score"},
+                # "keyword_score": {"$first": "$keyword_score"},
+                "inbound_domain_score": {"$first": "$inbound_domain_score"},
                 "total_score": {"$first": "$total_score"},
             }},
-            {"$project": {"_id": 1, "url": 1, "title": 1, "top_image": 1, "summary": 1, "published_date": 1,
-                          "keywords": 1, "exact": 1, 'title_score': 1, 'category_score': 1, 'read_time_score': 1, 'recency_score': 1, "total_score": 1, 'keyword_score': 1}},
+            {"$project": {"_id": 1, "url": 1, "title": 1, "top_image": 1, "authors":1, "summary": 1, "publish_date": 1, "read_time_in_minutes": 1,"total_score": 1,
+                        #   "keywords": 1, "exact": 1, "title_score": 1, "category_score": 1, "read_time_score": 1, "recency_score": 1, "keyword_score": 1,             "inbound_domain_score": 1
+                          }},
             {"$sort": {"total_score": -1}}
         ]
         result = Article.objects.aggregate(*pipeline)
