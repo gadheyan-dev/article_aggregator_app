@@ -24,6 +24,7 @@ class FindFeed(APIView):
         try:
             visited_and_unvisited_domains = DomainApi.fetch_crawled_domains(
                 feed_urls)
+            logger.info(visited_and_unvisited_domains)
             crawled_domains = self.crawl_domains(visited_and_unvisited_domains)
             # TODO: check for social media before saving
             DomainApi.save_domains(crawled_domains)
@@ -42,7 +43,7 @@ class FindFeed(APIView):
                 crawler = Crawler(url)
                 crawler.crawl()
                 domain['feeds'] = crawler.get_feeds()
-                domain['outbound_domains'] = crawler.get_outbound_domains()
+                domain['outbound_domains'] = crawler.get_outgoing_domains()
 
             except (WebsiteNotReachableException, CrawlNotAllowedException) as e:
                 domain['feeds'] = []
@@ -75,8 +76,6 @@ class FindFeed(APIView):
                         {'feed_url': feed_url, 'articles': feed_data})
 
         except Exception as e:
-            print("\n\n\n\nException is:")
-            import traceback
-            print(traceback.format_exc())
+            logger.exception("Exception Occured:\n %s", e)
 
         return articles

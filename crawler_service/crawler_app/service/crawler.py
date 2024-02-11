@@ -16,7 +16,7 @@ class Crawler:
     def __init__(self, url):
         self.url = url
         self.rss_links = set()
-        self.outbound_domains = set()
+        self.outgoing_domains = set()
         self.domain = tldextract.extract(url).domain
 
     
@@ -32,9 +32,9 @@ class Crawler:
         self.soup = None
 
         self.__initialise_bs4()
-        self.__get_common_feeds()
-        self.__get_all_rss_feeds()
-        self.__get_outbound_domains()
+        self.__extract_rss_feed_from_path()
+        self.__extract_rss_feeds_from_html()
+        self.__get_outgoing_domains()
         logger.info("Ended Crawling For URL: %s.\n" %(self.url))
         logger.info("---------------------------------------------------------")
 
@@ -45,29 +45,43 @@ class Crawler:
             raise WebsiteNotReachableException()
         self.soup = BeautifulSoup(self.response.content, 'html.parser')
 
-    def __get_common_feeds(self):
+    def __extract_rss_feed_from_path(self):
+        logger.info("Finding whether feeds exists in common rss paths...\n")
+        rss_feeds = set()
         for path in self.FEED_PATHS:
             feed_url = urljoin(self.url, path)
             response_feed = requests.head(feed_url)
             if response_feed.status_code == 200:
-                self.rss_links.add(feed_url)
-
-    def __get_all_rss_feeds(self):
+                rss_feeds.add(feed_url)
+        if rss_feeds:
+            logger.info("Feeds in path:%s" %list(rss_feeds))
+        self.rss_links = self.rss_links.union(rss_feeds)
+        
+    def __extract_rss_feeds_from_html(self):
+        logger.info("Parsing html to find feeds...\n")
+        rss_feeds = set()
         for link_tag in self.soup.find_all('link', {'type': 'application/rss+xml'}):
-                self.rss_links.add(urljoin(self.url, link_tag.get('href')))
+                rss_feeds.add(urljoin(self.url, link_tag.get('href')))
+        if rss_feeds:
+            logger.info("Feeds from HTML:%s" %list(rss_feeds))
+            self.rss_links = self.rss_links.union(rss_feeds)
 
 
-    def __get_outbound_domains(self):
+    def __get_outgoing_domains(self):
+        logger.info("Parsing html to find outgoing domains...\n")
+
         for a in self.soup.find_all('a', href=True):
             link_tld = tldextract.extract(a.get('href'))
             if not(link_tld.domain and link_tld.suffix):
                 continue
             if link_tld.domain != self.domain:
                 link_tld.subdomain = link_tld.subdomain or 'www'
-                self.outbound_domains.add('https://' + link_tld.subdomain + '.' + link_tld.domain + '.' + link_tld.suffix)
+                self.outgoing_domains.add('https://' + link_tld.subdomain + '.' + link_tld.domain + '.' + link_tld.suffix)
+        if self.outgoing_domains:
+            logger.info("Outgoing domains are:%s" %list(self.outgoing_domains))
 
     def get_feeds(self):
         return list(self.rss_links)
     
-    def get_outbound_domains(self):
-        return list(self.outbound_domains)
+    def get_outgoing_domains(self):
+        return list(self.outgoing_domains)

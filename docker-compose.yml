@@ -1,6 +1,16 @@
 version: '3'
 
 services:
+  web:
+    build: web/
+    container_name: web-container
+    environment:
+      - REACT_APP_ARTICLE_API_URL=article-service-container
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/usr/src/app
+
   article_service:
     build: article_service/
     container_name: article-service-container

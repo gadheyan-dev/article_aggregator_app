@@ -16,9 +16,7 @@ class FeedParser():
         feed = feedparser.parse(self.feed_url)
         config = Config()
         config.language = 'en'
-
         entries = []
-
         # TODO: Delete this code and add a code to crawl only latest entries
         count = -1
         keywords_request = []
