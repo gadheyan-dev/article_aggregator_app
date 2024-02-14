@@ -26,7 +26,7 @@ function Article({ url, domain, title, image, summary, readTime, publishDate, au
 
   return (
     <div className="card">
-      <img className="card-img-top" src={image} alt="Card image cap" />
+      <img className="card-img-top" src={image} alt="Card image cap" style={{ height: '400px', objectFit: 'cover' }}/>
       <div className="card-body">
         <h5 className="card-title">
           <a href={url} target="_blank" rel="noopener noreferrer">{title}</a>
@@ -52,7 +52,7 @@ function Article({ url, domain, title, image, summary, readTime, publishDate, au
         <a href={url} className="btn btn-primary">
           Full Article
         </a>
-        <a href={domain} className="btn btn-primary">
+        <a href={domain} className="btn btn-primary"  style={{ marginLeft: '10px' }}>
           Website
         </a>
       </div>

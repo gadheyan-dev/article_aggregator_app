@@ -10,12 +10,11 @@ def is_website_reachable(url):
     
 def join_lists(list1, list2, on="url", items_to_add=["keywords"]):
     result = []
-
-    # Create a dictionary for faster lookups based on the specified "on" field in list2
+    if not list2:
+        return list1
     dict_key = lambda item: item[on]
     url_dict = {dict_key(item): item for item in list2}
 
-    # Iterate through list1 and combine with matching values from list2
     for item1 in list1:
         join_value = item1[on]
         if join_value in url_dict:

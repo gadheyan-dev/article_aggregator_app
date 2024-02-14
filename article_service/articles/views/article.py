@@ -277,6 +277,7 @@ class ArticleListAPI(APIView):
             {"$group": {
                 "_id": "$_id",
                 "url": {"$first": "$url"},
+                "domain": {"$first": "$domain"},
                 "title": {"$first": "$title"},
                 "top_image": {"$first": "$top_image"},
                 "authors": {"$first": "$authors"},
@@ -293,7 +294,7 @@ class ArticleListAPI(APIView):
                 "inbound_domain_score": {"$first": "$inbound_domain_score"},
                 "total_score": {"$first": "$total_score"},
             }},
-            {"$project": {"_id": 1, "url": 1, "title": 1, "top_image": 1, "authors":1, "summary": 1, "publish_date": 1, "read_time_in_minutes": 1,"total_score": 1,
+            {"$project": {"_id": 1, "url": 1, "domain":1, "title": 1, "top_image": 1, "authors":1, "summary": 1, "publish_date": 1, "read_time_in_minutes": 1,"total_score": 1,
                         #   "keywords": 1, "exact": 1, "title_score": 1, "category_score": 1, "read_time_score": 1, "recency_score": 1, "keyword_score": 1,             "inbound_domain_score": 1
                           }},
             {"$sort": {"total_score": -1}}

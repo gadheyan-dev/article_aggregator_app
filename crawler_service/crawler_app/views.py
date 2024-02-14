@@ -71,7 +71,11 @@ class FindFeed(APIView):
 
                 for feed_url in domain['feeds']:
                     feed_obj = FeedParser(feed_url, domain['url'])
-                    feed_data = feed_obj.parse_feed()
+                    try:
+                        feed_data = feed_obj.parse_feed()
+                    except Exception as e:
+                        logger.exception(e)
+                        continue
                     articles.append(
                         {'feed_url': feed_url, 'articles': feed_data})
 

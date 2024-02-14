@@ -29,13 +29,12 @@ function ArticleList({}: ArticleListProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [articles, setArticles] = useState<ArticleData[]>([]);
   const [loading, setLoading] = useState(false);
-  const apiUrl = process.env.REACT_APP_ARTICLE_API_URL || 'http://localhost:8002/articles'; // Replace with your actual environment variable name
-
+  const apiUrl =  'localhost:8002';
 
   const fetchArticles = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${apiUrl}/articles/?search=${searchTerm}`);
+      const response = await axios.get(`http://${apiUrl}/articles/?search=${searchTerm}`);
       setArticles(response.data.data);
     } catch (error) {
       console.error('Error fetching articles:', error);
@@ -67,7 +66,7 @@ function ArticleList({}: ArticleListProps) {
             type="button"
             disabled={loading}
           >
-            {loading ? 'Loading...' : 'Search'}
+            {loading ? 'Searching...' : 'Search'}
           </button>
         </div>
       </div>

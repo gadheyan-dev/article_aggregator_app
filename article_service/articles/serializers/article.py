@@ -25,5 +25,6 @@ class ArticlePipelineSerializer(serializers.DocumentSerializer):
         # representation['recency_score'] = instance.get("recency_score", 0)
         # representation['keyword_score'] = instance.get("keyword_score", 0)
         # representation['inbound_domain_score'] = instance.get("inbound_domain_score", 0)
+        representation['domain'] = instance.get("domain", 0)
         representation['total_score'] = instance.get("total_score", 0)
         return representation

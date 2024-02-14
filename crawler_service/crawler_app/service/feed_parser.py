@@ -4,6 +4,10 @@ from newspaper import Article
 from newspaper import Config
 from crawler_app.apis.summarizer import SummarizerApi
 from crawler_app.utils.common_util import join_lists
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 class FeedParser():
     def __init__(self, feed_url, domain) -> None:
@@ -22,13 +26,18 @@ class FeedParser():
         keywords_request = []
         # Iterate through each entry in the feed
         for entry in feed.entries:
+            logger.info("Currently parsing feed entry: %s\n" %(entry['link']))
             count += 1
-            if count > 5:
+            if count > 10:
                 break
             # Extract information from each entry
             article = Article(entry['link'], config=config)
-            article.download()
-            article.parse()
+            try:
+                article.download()
+                article.parse()
+            except Exception as e:
+                logger.exception(e)
+                continue
             # Extract information
             title = entry.title
             if 'author' in entry:  # Check if 'author' tag is present in the entry
