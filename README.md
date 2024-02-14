@@ -4,6 +4,8 @@
 
 This project facilitates the discovery and aggregation of RSS feeds from diverse websites and makes them searchable. It has a simple(incomplete) front end web ui with a fairly robust backend. The backend crawler, when given a set of seed urls, finds feeds from it and extracts all links to be given back to the crawler inorder continue the process infinitely.
 
+![Web UI.](/assets/img/web_ui_with_results.png)
+
 
 ## Installation
 
