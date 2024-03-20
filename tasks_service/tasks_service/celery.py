@@ -9,11 +9,8 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'tasks_service.settings')
 
 app = Celery('tasks_service')
 
-# Using a string here means the worker will not have to
-# pickle the object when using Windows.
 app.config_from_object('django.conf:settings', namespace='CELERY')
 
-# Load task modules from all registered Django app configs.
 app.autodiscover_tasks()
 
 @app.task(bind=True)
